@@ -1,0 +1,25 @@
+[
+    {
+        "id": 1,
+        "title": "R\u00e9union",
+        "start": "2025-04-16",
+        "allDay": true,
+        "color": "#2e8b57"
+    },
+    {
+        "id": 2,
+        "title": "D\u00e9jeuner client",
+        "start": "2025-04-17",
+        "allDay": false,
+        "color": "#3cb371"
+    },
+    {
+        "id": "67ffefa976b12",
+        "title": "",
+        "start": null,
+        "end": null,
+        "allDay": false,
+        "color": "#2e8b57",
+        "textColor": "#ffffff"
+    }
+]
