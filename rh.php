@@ -2,13 +2,29 @@
 session_start();
 include_once('config.php');
 include_once('header.php');
-
-// Vérification des permissions RH
 verifySession();
-// if($_SESSION['qualite'] != 'RH') {
-//     header('Location: accueil.php');
-//     exit();
-// }
+
+// Gestion de la marque d'impression
+if(isset($_GET['mark_printed'])) {
+    $id = (int)$_GET['mark_printed'];
+    
+    try {
+        $stmt = $bdd->prepare("UPDATE demandes 
+                              SET est_imprime = 1, 
+                                  date_impression = NOW() 
+                              WHERE ID = ?");
+        $stmt->execute([$id]);
+        
+        // Journalisation pour débogage
+        error_log("Demande $id marquée comme imprimée");
+        
+        header("Location: ".strtok($_SERVER['REQUEST_URI'], '?'));
+        exit();
+    } catch(PDOException $e) {
+        error_log("Erreur SQL: ".$e->getMessage());
+        die("Erreur de mise à jour de la base de données");
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -129,6 +145,33 @@ verifySession();
         border: none;
     }
     
+    /* Styles pour les onglets */
+    .nav-tabs {
+        border-bottom: 2px solid var(--primary-dark);
+    }
+    
+    .nav-tabs .nav-link {
+        color: var(--text-color);
+        font-weight: 500;
+        border: none;
+        padding: 12px 20px;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: var(--primary-dark);
+        background-color: transparent;
+        border-bottom: 3px solid var(--primary-dark);
+    }
+    
+    .nav-tabs .nav-link:hover {
+        border-color: transparent;
+        color: var(--primary-dark);
+    }
+    
+    .tab-content {
+        padding: 20px 0;
+    }
+    
     @media (max-width: 768px) {
         .dg-header {
             padding: 1.5rem;
@@ -138,9 +181,14 @@ verifySession();
             padding: 8px 10px;
             font-size: 0.9rem;
         }
+        
+        .nav-tabs .nav-link {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
     }
     
-    /* Style spécifique pour l'impression - Identique à votre version */
+    /* Style spécifique pour l'impression */
     @media print {
         .no-print {
             display: none !important;
@@ -162,81 +210,155 @@ verifySession();
         <div class="dg-header animate__animated animate__fadeIn">
             <h1 class="dg-title">
                 <i class="bi bi-printer-fill dg-icon"></i>
-                Décisions de congé à imprimer
+                Gestion des décisions de congé
             </h1>
             <p class="mb-0 mt-2">
                 <i class="bi bi-info-circle"></i> Interface RH - Demandes validées par la Direction Générale
             </p>
         </div>
         
-        <div class="demands-card animate__animated animate__fadeInUp">
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Personnel</th>
-                            <th>Service</th>
-                            <th>Dates</th>
-                            <th>Jours</th>
-                            <th>Validé par</th>
-                            <th class="no-print">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php 
-                        $reponse = DemandesAccepteesParDG();
-                        while($donnees = $reponse->fetch()): 
-                            $infos = InfosPersonnel($donnees['CIN']);
-                            $days = dateDiff($donnees['DateRetour'], $donnees['DateDepart']) + 1;
-                        ?>
-                        <tr>
-                            <td>
-                                <strong><?= htmlspecialchars($infos['nom']) ?> <?= htmlspecialchars($infos['prenom']) ?></strong>
-                                <div class="small text-muted"><?= htmlspecialchars($donnees['CIN']) ?></div>
-                            </td>
-                            <td><?= htmlspecialchars($infos['service']) ?></td>
-                            <td>
-                                <div><?= date('d/m/Y', strtotime($donnees['DateDepart'])) ?></div>
-                                <div class="small text-muted">au <?= date('d/m/Y', strtotime($donnees['DateRetour'])) ?></div>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark"><?= $days ?> jours</span>
-                            </td>
-                            <td>
-                                Direction Générale
-                                <div class="small text-muted">DG</div>
-                            </td>
-                            <td class="no-print">
-                                <div class="action-buttons d-flex gap-2 justify-content-center">
-                                    <button onclick="imprimerDecision(
-                                        '<?= $donnees['ID'] ?>',
-                                        '<?= htmlspecialchars($infos['nom'].' '.htmlspecialchars($infos['prenom'])) ?>',
-                                        '<?= htmlspecialchars($donnees['CIN']) ?>',
-                                        '<?= htmlspecialchars($infos['service']) ?>',
-                                        '<?= date('d/m/Y', strtotime($donnees['DateDepart'])) ?>',
-                                        '<?= date('d/m/Y', strtotime($donnees['DateRetour'])) ?>',
-                                        '<?= $days ?>'
-                                    )" class="btn btn-validate text-white">
-                                        <i class="bi bi-printer"></i> Imprimer
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="imprimante-tab" data-bs-toggle="tab" data-bs-target="#imprimante" type="button" role="tab" aria-controls="imprimante" aria-selected="true">
+                    <i class="bi bi-printer"></i> À imprimer
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="archive-tab" data-bs-toggle="tab" data-bs-target="#archive" type="button" role="tab" aria-controls="archive" aria-selected="false">
+                    <i class="bi bi-archive"></i> Archives
+                </button>
+            </li>
+        </ul>
         
-        <div class="text-center no-print mt-4">
-            <button onclick="imprimerToutesDecisions()" class="btn btn-validate text-white" style="padding: 10px 20px;">
-                <i class="bi bi-printer-fill"></i> Imprimer toutes les décisions
-            </button>
+        <div class="tab-content" id="myTabContent">
+            <!-- Onglet Imprimante -->
+            <div class="tab-pane fade show active" id="imprimante" role="tabpanel" aria-labelledby="imprimante-tab">
+                <div class="demands-card animate__animated animate__fadeInUp">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Personnel</th>
+                                    <th>Service</th>
+                                    <th>Dates</th>
+                                    <th>Jours</th>
+                                    <th>Validé par</th>
+                                    <th class="no-print">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                connexionBdd($bdd);
+                                $reponse = $bdd->query("SELECT d.* FROM demande d 
+                                                     JOIN personnel p ON d.CIN = p.CIN 
+                                                     WHERE d.etat = '2' AND d.DateDepart >= NOW()
+                                                     ORDER BY d.DateDepart ASC");
+                                while($donnees = $reponse->fetch()): 
+                                    $infos = InfosPersonnel($donnees['CIN']);
+                                    $days = dateDiff($donnees['DateRetour'], $donnees['DateDepart']) + 1;
+                                ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($donnees['ID']) ?></td>
+                                    <td>
+                                        <strong><?= htmlspecialchars($infos['nom']) ?> <?= htmlspecialchars($infos['prenom']) ?></strong>
+                                        <div class="small text-muted"><?= htmlspecialchars($donnees['CIN']) ?></div>
+                                    </td>
+                                    <td><?= htmlspecialchars($infos['service']) ?></td>
+                                    <td>
+                                        <div><?= date('d/m/Y', strtotime($donnees['DateDepart'])) ?></div>
+                                        <div class="small text-muted">au <?= date('d/m/Y', strtotime($donnees['DateRetour'])) ?></div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark"><?= $days ?> jours</span>
+                                    </td>
+                                    <td>
+                                        Direction Générale
+                                        <div class="small text-muted">DG</div>
+                                    </td>
+                                    <td class="no-print">
+                                        <div class="action-buttons d-flex gap-2 justify-content-center">
+                                            <button onclick="imprimerDecision(
+                                                '<?= $donnees['ID'] ?>',
+                                                '<?= htmlspecialchars(addslashes($infos['nom'].' '.$infos['prenom'])) ?>',
+                                                '<?= htmlspecialchars($donnees['CIN']) ?>',
+                                                '<?= htmlspecialchars($infos['service']) ?>',
+                                                '<?= date('d/m/Y', strtotime($donnees['DateDepart'])) ?>',
+                                                '<?= date('d/m/Y', strtotime($donnees['DateRetour'])) ?>',
+                                                '<?= $days ?>'
+                                            )" class="btn btn-validate text-white">
+                                                <i class="bi bi-printer"></i> Imprimer
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="text-center no-print mt-4">
+                    <button onclick="imprimerToutesDecisions()" class="btn btn-validate text-white" style="padding: 10px 20px;">
+                        <i class="bi bi-printer-fill"></i> Imprimer toutes les décisions
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Onglet Archive -->
+            <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
+                <div class="demands-card animate__animated animate__fadeInUp">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Personnel</th>
+                                    <th>Service</th>
+                                    <th>Dates</th>
+                                    <th>Jours</th>
+                                    
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                $archiveReponse = $bdd->query("SELECT d.* FROM demande d 
+                                                          JOIN personnel p ON d.CIN = p.CIN 
+                                                          WHERE NOW() >= d.DateDepart
+                                                          ORDER BY d.ID DESC");
+                                while($archiveDonnees = $archiveReponse->fetch()): 
+                                    $archiveInfos = InfosPersonnel($archiveDonnees['CIN']);
+                                    $archiveDays = dateDiff($archiveDonnees['DateRetour'], $archiveDonnees['DateDepart']) + 1;
+                                ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($archiveDonnees['ID']) ?></td>
+                                    <td>
+                                        <strong><?= htmlspecialchars($archiveInfos['nom']) ?> <?= htmlspecialchars($archiveInfos['prenom']) ?></strong>
+                                        <div class="small text-muted"><?= htmlspecialchars($archiveDonnees['CIN']) ?></div>
+                                    </td>
+                                    <td><?= htmlspecialchars($archiveInfos['service']) ?></td>
+                                    <td>
+                                        <div><?= date('d/m/Y', strtotime($archiveDonnees['DateDepart'])) ?></div>
+                                        <div class="small text-muted">au <?= date('d/m/Y', strtotime($archiveDonnees['DateRetour'])) ?></div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark"><?= $archiveDays ?> jours</span>
+                                    </td>
+                                    
+                                    
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    // Fonction identique à votre version originale pour l'impression
     function imprimerDecision(idDemande, nomComplet, cin, service, dateDepart, dateRetour, jours) {
         const printWindow = window.open('', '_blank');
         const currentDate = new Date().toLocaleDateString('fr-FR', {
@@ -403,51 +525,78 @@ verifySession();
         `);
 
         printWindow.document.close();
+        
+        // Détection de l'impression
+        printWindow.onafterprint = function() {
+        // Envoyer la requête pour marquer comme imprimé
+        fetch(`?mark_printed=${idDemande}`)
+            .then(response => {
+                if(response.ok) {
+                    // Rafraîchir toute la page après un court délai
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+            
+        printWindow.close();
+    };
+    
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+}
+    
+    function imprimerToutesDecisions() {
+        // Créer une nouvelle fenêtre
+        const printWindow = window.open('', '_blank');
+        
+        // Récupérer le contenu du tableau
+        const tableau = document.querySelector('#imprimante .table-responsive').outerHTML;
+        
+        // Écrire le contenu dans la nouvelle fenêtre
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Décisions de congé</title>
+                <style>
+                    body { font-family: Arial; margin: 1cm; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th { background-color: #2E8B57; color: white; padding: 10px; text-align: center; }
+                    td { padding: 8px; text-align: center; border-bottom: 1px solid #ddd; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .badge { padding: 3px 8px; border-radius: 10px; font-weight: 500; }
+                    .text-muted { color: #6c757d; font-size: 0.9em; }
+                </style>
+            </head>
+            <body>
+                <h2 style="text-align:center;color:#2E8B57;">Décisions de congé validées</h2>
+                <p style="text-align:center;color:#555;">Document généré le ${new Date().toLocaleDateString('fr-FR')}</p>
+                ${tableau}
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        
+        // Lancer l'impression après un court délai
         setTimeout(() => {
             printWindow.print();
+            
+            // Marquer toutes les demandes comme imprimées
+            document.querySelectorAll('#imprimante tbody tr').forEach(row => {
+                const id = row.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)[1];
+                fetch(`?mark_printed=${id}`);
+            });
+            
+            // Recharger la page après un délai
+            setTimeout(() => location.reload(), 1000);
+            
             printWindow.close();
         }, 500);
     }
-    
-    function imprimerToutesDecisions() {
-    // Créer une nouvelle fenêtre
-    const printWindow = window.open('', '_blank');
-    
-    // Récupérer le contenu du tableau
-    const tableau = document.querySelector('.table-responsive').outerHTML;
-    
-    // Écrire le contenu dans la nouvelle fenêtre
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Décisions de congé</title>
-            <style>
-                body { font-family: Arial; margin: 1cm; }
-                table { width: 100%; border-collapse: collapse; }
-                th { background-color: #2E8B57; color: white; padding: 10px; text-align: center; }
-                td { padding: 8px; text-align: center; border-bottom: 1px solid #ddd; }
-                tr:nth-child(even) { background-color: #f9f9f9; }
-                .badge { padding: 3px 8px; border-radius: 10px; font-weight: 500; }
-                .text-muted { color: #6c757d; font-size: 0.9em; }
-            </style>
-        </head>
-        <body>
-            <h2 style="text-align:center;color:#2E8B57;">Décisions de congé validées</h2>
-            <p style="text-align:center;color:#555;">Document généré le ${new Date().toLocaleDateString('fr-FR')}</p>
-            ${tableau}
-        </body>
-        </html>
-    `);
-    
-    printWindow.document.close();
-    
-    // Lancer l'impression après un court délai
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 500);
-}
     </script>
     
 </body>
@@ -455,5 +604,8 @@ verifySession();
 <?php 
 if(isset($reponse)) {
     $reponse->closeCursor();
+}
+if(isset($archiveReponse)) {
+    $archiveReponse->closeCursor();
 }
 ?>

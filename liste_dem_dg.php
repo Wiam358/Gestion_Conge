@@ -306,10 +306,10 @@ function DemandesAccepteesParChefss() {
     <a href="liste_dem_dg.php?enAttente=1" class="filter-btn btn-pending <?php echo isset($_GET['enAttente']) ? 'active' : ''; ?>">
         <i class="bi bi-hourglass"></i> En attente
     </a>
-    <a href="liste_dem_dg.php?acceptee=1" class="filter-btn btn-accepted <?php echo isset($_GET['acceptee']) ? 'active' : ''; ?>">
+    <a href="liste_dem_dg.php?acceptee=2" class="filter-btn btn-accepted <?php echo isset($_GET['acceptee']) ? 'active' : ''; ?>">
         <i class="bi bi-check-circle"></i> Acceptées 
     </a>
-    <a href="liste_dem_dg.php?refusee=1" class="filter-btn btn-refused <?php echo isset($_GET['refusee']) ? 'active' : ''; ?>">
+    <a href="liste_dem_dg.php?refusee=-1" class="filter-btn btn-refused <?php echo isset($_GET['refusee']) ? 'active' : ''; ?>">
         <i class="bi bi-x-circle"></i> Refusées
     </a>
 </div>
@@ -319,6 +319,7 @@ function DemandesAccepteesParChefss() {
                 <table class="table">
                     <thead>
                         <tr>
+                            <th>ID</th>
                             <th>Personnel</th>
                             <th>Service</th>
                             <th>Dates</th>
@@ -336,6 +337,7 @@ function DemandesAccepteesParChefss() {
                             $days = dateDiff($donnees['DateRetour'], $donnees['DateDepart']) + 1;
                         ?>
                         <tr>
+                            <td><?= htmlspecialchars($donnees['ID']) ?></td>
                             <td>
                                 <strong><?= htmlspecialchars($infos['nom']) ?> <?= htmlspecialchars($infos['prenom']) ?></strong>
                                 <div class="small text-muted"><?= htmlspecialchars($donnees['CIN']) ?></div>
@@ -349,47 +351,51 @@ function DemandesAccepteesParChefss() {
                                 <span class="badge bg-light text-dark"><?= $days ?> jours</span>
                             </td>
                             <td>
-    <?php
-    if($donnees['Etat'] == 1) {
-        echo '<span class="badge bg-warning text-dark">En attente DG</span>';
-    } elseif($donnees['Etat'] == 2) {
-        echo '<span class="badge bg-success">Validée</span>';
+    <?php 
+    // Afficher qui a validé
+    if($donnees['Etat'] == 1 || $donnees['Etat'] == 2 ) {
+        echo '<span class="badge bg-warning">Validé par CD</span>';
+    } elseif($infos['qualite'] == 'CD' || $infos['qualite'] == 'RH' || $infos['qualite'] == 'DG') {
+        echo '<span class="badge bg-info">Demande directe</span>';
     } else {
         echo '<span class="badge bg-secondary">Non validé</span>';
     }
-    ?> 
+    ?>
 </td>
+
 <td>
     <?php 
-    $etat = $donnees['Etat'];
-    if($etat == 0) {
-        echo '<span class="badge bg-danger">Refusée</span>';
-    } elseif($etat == 1) {
-        echo '<span class="badge bg-warning text-dark">Validée par CD</span>';
-    } elseif($etat == 2) {
-        echo '<span class="badge bg-success">Validée par DG</span>';
+    // Afficher l'état global
+    if($donnees['Etat'] == 0 && $infos['qualite'] == 'CD' || $infos['qualite'] == 'RH' || $infos['qualite'] == 'DG') {
+        echo '<span class="badge bg-warning">En attente</span>';
+    } elseif($donnees['Etat'] == 2) {
+        echo '<span class="badge bg-success">Acceptée</span>';
+    }elseif($donnees['Etat'] == 0) {
+        echo '<span class="badge bg-danger">refusée</span>';
+     }
+     else {
+        echo '<span class="badge bg-warning">En attente</span>';
     }
     ?>
 </td>
+
 <td>
     <div class="action-buttons d-flex gap-2">
-        <?php if($donnees['Etat'] == 1): ?>
-            <form method="post" action="liste_dem_dg.php">
-                <input type="hidden" name="valider" value="<?= htmlspecialchars($donnees['ID']) ?>">
-                <button type="submit" class="btn btn-validate text-white" onclick="return confirm('Confirmer la validation définitive de cette demande ?')">
-                    <i class="bi bi-check-circle"></i> Accepter
+        <?php if($donnees['Etat'] != 2): ?>
+            <form method="post">
+                <input type="hidden" name="valider" value="<?= $donnees['ID'] ?>">
+                <button type="submit" class="btn btn-success" 
+                    onclick="return confirm('Accepter cette demande ?')">
+                    <i class="bi bi-check"></i>
                 </button>
             </form>
-            <form method="post" action="liste_dem_dg.php">
-                <input type="hidden" name="rejeter" value="<?= htmlspecialchars($donnees['ID']) ?>">
-                <button type="submit" class="btn btn-cancel text-white" onclick="return confirm('Rejeter cette demande malgré la validation du chef de département ?')">
-                    <i class="bi bi-x-circle"></i> Refuser
+            <form method="post">
+                <input type="hidden" name="rejeter" value="<?= $donnees['ID'] ?>">
+                <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Refuser cette demande ?')">
+                    <i class="bi bi-x"></i>
                 </button>
             </form>
-        <?php elseif($donnees['Etat'] == 2): ?>
-            <span class="text-success"><i class="bi bi-check-circle-fill"></i> Acceptée</span>
-        <?php elseif($donnees['Etat'] == 0): ?>
-            <span class="text-danger"><i class="bi bi-x-circle-fill"></i> Refusée</span>
         <?php endif; ?>
     </div>
 </td>

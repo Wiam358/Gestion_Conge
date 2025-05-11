@@ -179,8 +179,7 @@
                 </a>
             </li>
 
-            <?php
-            include_once('config.php');
+            <?php include_once('config.php');
             if (isset($_SESSION['qualite'])) {
                 if ($_SESSION['qualite'] === 'DG') {
                     echo '<li class="nav-item"><a class="nav-link" href="liste_dem_dg.php"><i class="bi bi-list"></i> Liste des demandes</a></li>';

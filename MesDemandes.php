@@ -220,8 +220,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         background-color: var(--seagreen-lighter);
     }
 
-    .btn-action {
-        background-color: var(--seagreen-primary);
+    .btn-primary {
+        background-color:rgb(241, 169, 14);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .btn-danger {
+        background-color:rgb(244, 4, 4);
         border: none;
         color: white;
         padding: 8px 12px;
@@ -232,10 +243,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         white-space: nowrap;
     }
 
-    .btn-action:hover {
-        background-color: var(--seagreen-dark);
+    .btn-danger:hover {
+        background-color: rgb(144, 3, 3);
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+        box-shadow: 0 5px 15px rgba(111, 7, 7, 0.88);
+    }
+
+    .btn-primary:hover {
+        background-color: rgb(180, 125, 7);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(130, 80, 4, 0.88);
     }
 
     .status {
@@ -353,7 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 
                                 $id = $demande['ID'];
                                 echo <<<HTML
-                                <button type="button" class="btn-action btn-sm btn-modifier" 
+                                <button type="button" class="btn-action btn-sm btn-primary btn-modifier" 
                                         data-bs-toggle="modal" data-bs-target="#modalModifier"
                                         data-id="$id"
                                         data-type="{$demande['type']}"

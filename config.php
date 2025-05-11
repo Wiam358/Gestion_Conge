@@ -302,20 +302,30 @@ $req= $bdd->query('SELECT * FROM demande WHERE CIN=\'' . $cin. '\' ORDER BY ID D
 //$reponse=$req->execute(array($cin));
 return $req ;
 }
-function LesDemandesChefDepartement($departement) {
+function LesDemandesChefDepartement($departement, $cin_cd) {
     connexionBdd($bdd);
-    $req = $bdd->prepare("SELECT * FROM demande WHERE CIN IN 
-        (SELECT CIN FROM personnel WHERE depart = ?) 
-        ORDER BY DateDemande DESC");
-    $req->execute([$departement]);
+    $req = $bdd->prepare("SELECT d.* 
+                         FROM demande d
+                         JOIN personnel p ON d.CIN = p.cin
+                         WHERE p.depart = ? 
+                         AND p.qualite NOT IN ('CD', 'RH', 'DG')
+                         AND d.CIN != ?
+                         ORDER BY d.DateDemande DESC");
+    $req->execute([$departement, $cin_cd]);
     return $req;
 }
-function DemandesEnAttenteChefDepartement($departement) {
+
+function DemandesEnAttenteChefDepartement($departement, $cin_cd) {
     connexionBdd($bdd);
-    $req = $bdd->prepare("SELECT * FROM demande WHERE Etat = 0 AND CIN IN 
-        (SELECT CIN FROM personnel WHERE depart = ?) 
-        ORDER BY DateDemande DESC");
-    $req->execute([$departement]);
+    $req = $bdd->prepare("SELECT d.* 
+                         FROM demande d
+                         JOIN personnel p ON d.CIN = p.cin
+                         WHERE d.Etat = 0 
+                         AND p.depart = ?
+                         AND p.qualite NOT IN ('CD', 'RH', 'DG')
+                         AND d.CIN != ?
+                         ORDER BY d.DateDemande DESC");
+    $req->execute([$departement, $cin_cd]);
     return $req;
 }
 
@@ -349,30 +359,35 @@ function DemandesRefuseeChefDepartement($departement) {
 
 
 
-
 function DemandesEnAttentePourDG() {
     $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
-    $req = $bdd->prepare('SELECT d.* FROM demande d 
+    $req = $bdd->prepare('SELECT d.*, p.qualite 
+                         FROM demande d 
                          JOIN personnel p ON d.CIN = p.cin 
-                         WHERE d.Etat = 1');
+                         WHERE (d.Etat = 1 OR p.qualite IN ("CD", "RH", "DG"))
+                         AND d.Etat != 2 ORDER BY d.ID DESC');
     $req->execute();
     return $req;
 }
 
 function DemandesRefuseesParDG() {
     $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
-    $req = $bdd->prepare('SELECT d.* FROM demande d 
+    $req = $bdd->prepare('SELECT d.*, p.qualite 
+                         FROM demande d 
                          JOIN personnel p ON d.CIN = p.cin 
-                         WHERE d.Etat = 0');
+                         WHERE d.Etat = 0 
+                         AND (p.qualite IN ("CD", "RH", "DG") OR d.Etat = 0) ORDER BY d.ID DESC');
     $req->execute();
     return $req;
 }
 
 function DemandesPourValidationDG() {
     $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
-    $req = $bdd->prepare('SELECT d.* FROM demande d 
+    $req = $bdd->prepare('SELECT d.*, p.qualite 
+                         FROM demande d 
                          JOIN personnel p ON d.CIN = p.cin 
-                         WHERE d.Etat IN (0, 1, 2)');
+                         WHERE (d.Etat = 1 OR p.qualite IN ("CD", "RH", "DG"))
+                         AND d.Etat IN (0, 2) ORDER BY d.ID DESC');
     $req->execute();
     return $req;
 }
@@ -612,7 +627,6 @@ return $req ;
 }
 
 function notificationsCD() {
-
     $cin = $_SESSION['cin'];
     $infosChef = InfosPersonnel($cin);
     
@@ -626,31 +640,36 @@ function notificationsCD() {
 
     $sql = "SELECT COUNT(*) AS NbenAttente 
             FROM demande d
-            INNER JOIN personnel p ON d.cin = p.cin
-            WHERE d.Etat = 0 AND p.depart = :departement";
+            INNER JOIN personnel p ON d.CIN = p.cin
+            WHERE d.Etat = 0 
+            AND p.depart = :departement
+            AND p.qualite NOT IN ('CD', 'RH', 'DG')
+            AND d.CIN != :cin_chef";
 
     $req = $bdd->prepare($sql);
-    $req->execute([':departement' => $departementChef]);
+    $req->execute([
+        ':departement' => $departementChef,
+        ':cin_chef' => $cin
+    ]);
 
     $rep = $req->fetch();
     return $rep['NbenAttente'];
 }
 
 function notificationsDG() {
-
     connexionBdd($bdd);
 
-    // Demandes validées par le chef de département (Etat = 1) mais pas encore validées par le DG (Etat = 1)
     $sql = "SELECT COUNT(*) AS NbenAttente 
-            FROM demande 
-            WHERE Etat = 1";
+            FROM demande d
+            JOIN personnel p ON d.CIN = p.cin
+            WHERE (d.Etat = 1 OR p.qualite IN ('CD', 'RH', 'DG'))
+            AND d.Etat != 2"; // Exclure les demandes déjà acceptées par DG (Etat = 2)
 
     $req = $bdd->prepare($sql);
     $req->execute();
     $rep = $req->fetch();
     return $rep['NbenAttente'];
 }
-
 
 
 
@@ -664,9 +683,11 @@ function notificationsDG() {
 
 function DemandesAccepteesParDG() {
     $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
-    $req = $bdd->prepare('SELECT d.* FROM demande d 
+    $req = $bdd->prepare('SELECT d.*, p.nom, p.prenom, p.qualite, p.service 
+                         FROM demande d 
                          JOIN personnel p ON d.CIN = p.cin 
-                         WHERE d.Etat = 2');
+                         WHERE d.Etat = 2
+                         ORDER BY d.ID DESC');
     $req->execute();
     return $req;
 }

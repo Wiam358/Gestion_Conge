@@ -599,7 +599,7 @@ if ($qualite === 'DG' || $qualite === 'CD'):
                         <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
                         <div class="stat-value">
                             <?php 
-                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 2");
+                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 2 and DateDepart >= NOW()");
                             $req->execute();
                             echo $req->fetchColumn();
                             ?>
@@ -731,7 +731,7 @@ if ($qualite === 'DG' || $qualite === 'CD'):
             <div class="calendar-system">
     <div class="calendar-responsive-container">
         <div class="calendar-header">
-            <h3 class="calendar-title">Calendrier des Congés</h3>
+                            <h2 class="mb-4 fw-bold" style="color: var(--primary-color);">Analyse des Congés</h2>
             <button id="addEventBtn" class="btn-add-event">
                 <i class="bi bi-plus-circle"></i> Ajouter un événement
             </button>

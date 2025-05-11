@@ -42,16 +42,17 @@ if(isset($_POST['pasEncore'])) {
 $cin = $_SESSION['cin']; // CIN du chef de département connecté
 $infosChef = InfosPersonnel($cin);
 $departementChef = $infosChef['depart'];
+$cin_cd= $infosChef['cin'];
 
 // Récupération des demandes selon le filtre
 if(isset($_GET['enAttente'])) {
-    $reponse = DemandesEnAttenteChefDepartement($departementChef);
+    $reponse = DemandesEnAttenteChefDepartement($departementChef,$cin_cd);
 } elseif(isset($_GET['acceptee'])) {
     $reponse = DemandesAccepteeChefDepartement($departementChef);
 } elseif(isset($_GET['refusee'])) {
     $reponse = DemandesRefuseeChefDepartement($departementChef);
 } else {
-    $reponse = LesDemandesChefDepartement($departementChef);
+    $reponse = LesDemandesChefDepartement($departementChef,$cin_cd);
 }
 ?>
 
