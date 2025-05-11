@@ -127,6 +127,12 @@
                 margin-bottom: 0.5rem;
             }
         }
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+                
+            }
+        }
         /* Animation Styles */
 [data-aos] {
     transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);

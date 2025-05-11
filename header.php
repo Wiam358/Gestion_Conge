@@ -113,12 +113,16 @@
     font-size: 1.5rem;
 }
 
-/* Responsive styles */
+/* Responsive styles - Version corrigée */
 @media (max-width: 992px) {
     .sidebar {
+        padding-top:45px ;
         transform: translateX(-100%);
+        z-index: 1050; /* Au-dessus du header */
     }
-    
+    .profile-greeting{
+        padding-left: 45px;
+    }
     .sidebar.open {
         transform: translateX(0);
     }
@@ -129,6 +133,36 @@
     
     .menu-toggle {
         display: block;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1051; /* Au-dessus du sidebar */
+    }
+
+    .header-container {
+        position: relative;
+        z-index: 1049; /* Juste en dessous du menu */
+        padding-top: 60px; /* Espace pour le bouton */
+    }
+
+    .user-profile-card {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding-top: 20px; /* Compensation pour le header */
+    }
+}
+
+/* Animation pour éviter le flash au chargement */
+@media (max-width: 992px) {
+    .sidebar {
+        transition: transform 0.3s ease, z-index 0.3s ease 0.3s;
+    }
+    .sidebar.open {
+        transition: transform 0.3s ease;
     }
 }
 
@@ -160,7 +194,7 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link" href="dashboard.php">
-                    <i class="bi bi-person-fill"></i> Tableau de Bord
+                    <i class="bi bi-grid"></i> Tableau de Bord
                 </a>
             </li>
             <li class="nav-item">
@@ -183,9 +217,13 @@
             if (isset($_SESSION['qualite'])) {
                 if ($_SESSION['qualite'] === 'DG') {
                     echo '<li class="nav-item"><a class="nav-link" href="liste_dem_dg.php"><i class="bi bi-list"></i> Liste des demandes</a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="diag_dg.php"><i class="bi bi-bar-chart"></i> Visualisation </a></li>';
                 }
                 if ($_SESSION['qualite'] === 'CD') {
                     echo '<li class="nav-item"><a class="nav-link" href="listeDemandes.php"><i class="bi bi-list"></i> Liste des demandes</a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="liste_equipe_cd.php"><i class="bi bi-people-fill"></i> Mon équipe </a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="diag_cd.php"><i class="bi bi-bar-chart"></i> Visualisation </a></li>';
+
                 }
                 if ($_SESSION['qualite'] === 'RH') {
                     echo '<li class="nav-item"><a class="nav-link" href="listePersonnels.php"><i class="bi bi-list"></i> Les Personnels</a></li>';
@@ -202,6 +240,7 @@
             </li>
         </ul>
     </nav>
+    
 </aside>
 
 <!-- User Profile & Notification Card -->

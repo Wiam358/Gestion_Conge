@@ -203,6 +203,12 @@ if(isset($_GET['mark_printed'])) {
             font-size: 10pt;
         }
     }
+    @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+                
+            }
+        }
     </style>
 </head>
 <body>

@@ -197,6 +197,12 @@ if (isset($_POST['datedepart']) && isset($_POST['dateretour'])) {
             min-height: 100px;
             resize: vertical;
         }
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+                
+            }
+        }
     </style>
 </head>    
 <body>

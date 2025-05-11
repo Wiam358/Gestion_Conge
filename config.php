@@ -713,4 +713,33 @@ $req=$bdd->query('SELECT  distinct service FROM personnel ');
 return $req;
 }
 
+function getCongesParDepartement() {
+    $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
+    $req = $bdd->query('SELECT p.depart, COUNT(d.ID) as nb_conges 
+                       FROM demande d
+                       JOIN personnel p ON d.CIN = p.cin
+                       WHERE d.Etat = 2
+                       GROUP BY p.depart');
+    return $req->fetchAll();
+}
+
+function getCongesParType() {
+    $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
+    $req = $bdd->query('SELECT Type, COUNT(*) as nb 
+                        FROM demande 
+                        WHERE Etat = 2
+                        GROUP BY Type');
+    return $req->fetchAll();
+}
+
+function getCongesEnCours() {
+    $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
+    $req = $bdd->query("SELECT p.nom, p.prenom, p.depart, d.DateDepart, d.DateRetour 
+                       FROM demande d
+                       JOIN personnel p ON d.CIN = p.cin
+                       WHERE d.Etat = 2
+                       AND CURDATE() BETWEEN d.DateDepart AND d.DateRetour
+                       ORDER BY d.DateDepart");
+    return $req->fetchAll();
+}
 ?>

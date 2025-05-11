@@ -26,7 +26,7 @@ if(isset($_POST['valider'])) {
 if(isset($_POST['rejeter'])) {
     $idDemande = $_POST['rejeter'];
     $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
-    $req = $bdd->prepare('UPDATE demande SET Etat = 0 WHERE ID = ?');
+    $req = $bdd->prepare('UPDATE demande SET Etat = -1 WHERE ID = ?');
     $req->execute([$idDemande]);
     
     // Redirection pour éviter la resoumission du formulaire
@@ -285,6 +285,12 @@ function DemandesAccepteesParChefss() {
         max-width: none;
     }
 }
+@media (max-width: 992px) {
+            body {
+                margin-left: 0;
+                
+            }
+        }
     </style>
 </head>
 <body>
@@ -299,17 +305,17 @@ function DemandesAccepteesParChefss() {
             </p>
         </div>
 
-        <div class="filter-buttons animate__animated animate__fadeIn">
+<div class="filter-buttons animate__animated animate__fadeIn">
     <a href="liste_dem_dg.php" class="filter-btn btn-all <?php echo !isset($_GET['enAttente']) && !isset($_GET['acceptee']) && !isset($_GET['refusee']) ? 'active' : ''; ?>">
         <i class="bi bi-list-ul"></i> Toutes les demandes
     </a>
     <a href="liste_dem_dg.php?enAttente=1" class="filter-btn btn-pending <?php echo isset($_GET['enAttente']) ? 'active' : ''; ?>">
         <i class="bi bi-hourglass"></i> En attente
     </a>
-    <a href="liste_dem_dg.php?acceptee=2" class="filter-btn btn-accepted <?php echo isset($_GET['acceptee']) ? 'active' : ''; ?>">
+    <a href="liste_dem_dg.php?acceptee=1" class="filter-btn btn-accepted <?php echo isset($_GET['acceptee']) ? 'active' : ''; ?>">
         <i class="bi bi-check-circle"></i> Acceptées 
     </a>
-    <a href="liste_dem_dg.php?refusee=-1" class="filter-btn btn-refused <?php echo isset($_GET['refusee']) ? 'active' : ''; ?>">
+    <a href="liste_dem_dg.php?refusee=1" class="filter-btn btn-refused <?php echo isset($_GET['refusee']) ? 'active' : ''; ?>">
         <i class="bi bi-x-circle"></i> Refusées
     </a>
 </div>
@@ -366,11 +372,11 @@ function DemandesAccepteesParChefss() {
 <td>
     <?php 
     // Afficher l'état global
-    if($donnees['Etat'] == 0 && $infos['qualite'] == 'CD' || $infos['qualite'] == 'RH' || $infos['qualite'] == 'DG') {
+    if($donnees['Etat'] == 1 || (( $infos['qualite'] == 'CD' || $infos['qualite'] == 'RH' || $infos['qualite'] == 'DG') && $donnees['Etat'] == 0)) {
         echo '<span class="badge bg-warning">En attente</span>';
     } elseif($donnees['Etat'] == 2) {
         echo '<span class="badge bg-success">Acceptée</span>';
-    }elseif($donnees['Etat'] == 0) {
+    }elseif($donnees['Etat'] == -1) {
         echo '<span class="badge bg-danger">refusée</span>';
      }
      else {

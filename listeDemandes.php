@@ -243,6 +243,12 @@ if(isset($_GET['enAttente'])) {
         .action-btn i {
             font-size: 1rem;
         }
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+                
+            }
+        }
         
         @media (max-width: 768px) {
             .filter-buttons {

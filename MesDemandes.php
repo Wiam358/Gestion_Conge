@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Demandes</title>
+    <title>Mes Demandes | CCISCS</title>
     <link rel="icon" type="image/png" href="photos/cciscs.png" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -310,6 +310,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 4px 8px;
         }
     }
+    @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+                
+            }
+        }
     </style>
 </head>
 <body>

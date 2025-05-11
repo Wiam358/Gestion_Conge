@@ -184,6 +184,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pass'])) {
                 font-size: 1.25rem;
             }
         }
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+                
+            }
+        }
     </style>
 </head>
 <body>

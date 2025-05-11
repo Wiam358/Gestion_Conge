@@ -214,6 +214,12 @@ if(isset($_POST['newValue'])){
                 margin-bottom: 1rem;
             }
         }
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+                
+            }
+        }
     </style>
 </head>
 <body>
