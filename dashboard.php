@@ -320,7 +320,7 @@
                         <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
                         <div class="stat-value">
                             <?php 
-                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = -1 AND cin = ? AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
+                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = -2 AND cin = ? AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
                             $req->execute([$_SESSION['cin']]);
                             echo $req->fetchColumn();
                             ?>
@@ -473,7 +473,7 @@
                         <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
                         <div class="stat-value">
                             <?php 
-                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = -1 
+                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = -2 
                                                  AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) 
                                                  AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
                             $req->execute();
@@ -529,7 +529,7 @@ if ($qualite === 'DG' || $qualite === 'CD'):
     $sql = "SELECT 
                 p.depart,
                 SUM(CASE WHEN d.Etat = 1 THEN 1 ELSE 0 END) as valides,
-                SUM(CASE WHEN d.Etat = -1 THEN 1 ELSE 0 END) as refuses,
+                SUM(CASE WHEN d.Etat = -2 THEN 1 ELSE 0 END) as refuses,
                 SUM(CASE WHEN d.Etat = 0 THEN 1 ELSE 0 END) as en_attente,
                 COUNT(DISTINCT CASE WHEN EXISTS (
                     SELECT 1 FROM demande d2 

@@ -2,7 +2,7 @@
 session_start();
 include_once('config.php');
 include_once('header.php');
-
+connexionBdd($bdd);
 // Vérification de session et permissions DG
 verifySession();
 if($_SESSION['qualite'] != 'DG') {
@@ -13,9 +13,35 @@ if($_SESSION['qualite'] != 'DG') {
 // Traitement de la validation
 if(isset($_POST['valider'])) {
     $idDemande = $_POST['valider'];
-    $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
     $req = $bdd->prepare('UPDATE demande SET Etat = 2 WHERE ID = ?');
     $req->execute([$idDemande]);
+    echo "<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'success',
+                title: 'Demande acceptée',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        });
+    </script>";
+
+    // $demande = $req->fetch();
+
+    // if ($demande) {
+    //     $cin = $demande['CIN'];
+    //     $jours = dateDiff($demande['DateRetour'], $demande['DateDepart']) + 1;
+
+    //     // Déduire le solde uniquement si la demande est acceptée (etat=2)
+    //     if ($demande['Etat'] == 2) {
+    //         $updateSolde = $bdd->prepare("UPDATE personnel SET conges_annee_en_cours = conges_annee_en_cours - ? WHERE cin = ?");
+    //         $updateSolde->execute([$jours, $cin]);
+    //     }
+
+    //     // Mettre à jour l'état de la demande
+    //     $req = $bdd->prepare('UPDATE demande SET Etat = 2 WHERE ID = ?');
+    //     $req->execute([$idDemande]);
+    // }
     
     // Redirection pour éviter la resoumission du formulaire
     // header('Location: liste_dem_dg.php');
@@ -25,14 +51,38 @@ if(isset($_POST['valider'])) {
 // Traitement du rejet
 if(isset($_POST['rejeter'])) {
     $idDemande = $_POST['rejeter'];
-    $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
-    $req = $bdd->prepare('UPDATE demande SET Etat = -1 WHERE ID = ?');
+
+    // Récupérer les infos de la demande pour calculer le nombre de jours et savoir à qui elle appartient
+    $req = $bdd->prepare("SELECT * FROM demande WHERE ID = ?");
     $req->execute([$idDemande]);
-    
-    // Redirection pour éviter la resoumission du formulaire
-    // header('Location: liste_dem_dg.php');
-    // exit();
+    $demande = $req->fetch();
+
+    if ($demande) {
+        $cin = $demande['CIN'];
+        $jours = (date_diff(date_create($demande['DateDepart']), date_create($demande['DateRetour'])))->days + 1;
+
+        // Remettre les jours au solde si la demande était directe (etat=0)
+        if ($demande['Etat'] == 0) {
+            $updateSolde = $bdd->prepare("UPDATE personnel SET conges_annee_en_cours = conges_annee_en_cours + ? WHERE cin = ?");
+            $updateSolde->execute([$jours, $cin]);
+        }
+
+        // Mettre à jour l'état de la demande
+        $updateEtat = $bdd->prepare("UPDATE demande SET Etat = -2 WHERE ID = ?");
+        $updateEtat->execute([$idDemande]);
+    }
+    echo "<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Demande refusée',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        });
+    </script>";
 }
+
 
 // Récupération des demandes selon le filtre
 if(isset($_GET['enAttente'])) {
@@ -74,6 +124,7 @@ function DemandesAccepteesParChefss() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validation DG | CCISCS</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="icon" type="image/png" href="photos/cciscs.png" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -330,7 +381,7 @@ function DemandesAccepteesParChefss() {
                             <th>Service</th>
                             <th>Dates</th>
                             <th>Jours</th>
-                            <th>Validé par</th>
+                            <th>Pré-validation</th>
                             <th>État</th>
                             <th>Actions</th>
                             
@@ -359,7 +410,7 @@ function DemandesAccepteesParChefss() {
                             <td>
     <?php 
     // Afficher qui a validé
-    if($donnees['Etat'] == 1 || $donnees['Etat'] == 2 ) {
+    if($donnees['Etat'] == 1 || $donnees['Etat'] == 2 || $donnees['Etat'] == -2 ) {
         echo '<span class="badge bg-warning">Validé par CD</span>';
     } elseif($infos['qualite'] == 'CD' || $infos['qualite'] == 'RH' || $infos['qualite'] == 'DG') {
         echo '<span class="badge bg-info">Demande directe</span>';
@@ -376,7 +427,7 @@ function DemandesAccepteesParChefss() {
         echo '<span class="badge bg-warning">En attente</span>';
     } elseif($donnees['Etat'] == 2) {
         echo '<span class="badge bg-success">Acceptée</span>';
-    }elseif($donnees['Etat'] == -1) {
+    }elseif($donnees['Etat'] == -2) {
         echo '<span class="badge bg-danger">refusée</span>';
      }
      else {
@@ -387,20 +438,20 @@ function DemandesAccepteesParChefss() {
 
 <td>
     <div class="action-buttons d-flex gap-2">
-        <?php if($donnees['Etat'] != 2): ?>
+        <?php if($donnees['Etat'] != -2 && $donnees['Etat'] != 2): ?>
             <form method="post">
                 <input type="hidden" name="valider" value="<?= $donnees['ID'] ?>">
-                <button type="submit" class="btn btn-success" 
-                    onclick="return confirm('Accepter cette demande ?')">
+                <button type="button" class="btn btn-success btn-validate" data-id="<?= $donnees['ID'] ?>">
                     <i class="bi bi-check"></i>
                 </button>
+
             </form>
             <form method="post">
                 <input type="hidden" name="rejeter" value="<?= $donnees['ID'] ?>">
-                <button type="submit" class="btn btn-danger"
-                    onclick="return confirm('Refuser cette demande ?')">
+                <button type="button" class="btn btn-danger btn-reject" data-id="<?= $donnees['ID'] ?>">
                     <i class="bi bi-x"></i>
                 </button>
+
             </form>
         <?php endif; ?>
     </div>
@@ -423,5 +474,51 @@ function DemandesAccepteesParChefss() {
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
     <?php $reponse->closeCursor(); ?>
+    <script>
+document.querySelectorAll('.btn-validate').forEach(button => {
+    button.addEventListener('click', function () {
+        const id = this.dataset.id;
+        Swal.fire({
+            title: 'Valider cette demande ?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, valider',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#28a745'
+        }).then(result => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.innerHTML = `<input type="hidden" name="valider" value="${id}">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.btn-reject').forEach(button => {
+    button.addEventListener('click', function () {
+        const id = this.dataset.id;
+        Swal.fire({
+            title: 'Refuser cette demande ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, refuser',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#dc3545'
+        }).then(result => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.innerHTML = `<input type="hidden" name="rejeter" value="${id}">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+
 </body>
 </html>

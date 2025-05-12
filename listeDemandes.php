@@ -357,7 +357,7 @@ if(isset($_GET['enAttente'])) {
                             switch ($Etat) {
                                 case '-1':
                                     $EtatClass = 'state-refused';
-                                    $EtatText = 'Refusée';
+                                    $EtatText = 'Refusée par CD';
                                     $choixR = false;
                                     break;
                                 case '0':
@@ -367,12 +367,26 @@ if(isset($_GET['enAttente'])) {
                                     break;        
                                 case '1':
                                     $EtatClass = 'state-accepted';
-                                    $EtatText = 'Acceptée';
+                                    $EtatText = 'Acceptée par CD';
+                                    $choixA = false;
+                                    break;
+                                case '2':
+                                    $EtatClass = 'state-accepted';
+                                    $EtatText = 'Acceptée par DG';
+                                    $choixR = false;
+                                    $choixE = false;
+                                    $choixA = false;
+                                    break;
+                                case '-2':
+                                    $EtatClass = 'state-accepted';
+                                    $EtatText = 'refusée par DG';
+                                    $choixR = false;
+                                    $choixE = false;
                                     $choixA = false;
                                     break;
                                 default:
                                     $EtatClass = 'state-accepted';
-                                    $EtatText = 'Acceptée par DG';
+                                    $EtatText = '-';
                                     $choixR = false;
                                     $choixE = false;
                                     $choixA = false;

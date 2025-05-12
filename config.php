@@ -360,37 +360,43 @@ function DemandesRefuseeChefDepartement($departement) {
 
 
 function DemandesEnAttentePourDG() {
-    $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
+    connexionBdd($bdd);
     $req = $bdd->prepare('SELECT d.*, p.qualite 
                          FROM demande d 
                          JOIN personnel p ON d.CIN = p.cin 
-                         WHERE (d.Etat = 1 OR p.qualite IN ("CD", "RH", "DG"))
-                         AND d.Etat != 2 ORDER BY d.ID DESC');
+                         WHERE d.Etat = 1 
+                         OR (d.Etat = 0 AND p.qualite IN ("CD", "RH", "DG")) 
+                         ORDER BY d.ID DESC');
     $req->execute();
     return $req;
 }
+
 
 function DemandesRefuseesParDG() {
     $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
     $req = $bdd->prepare('SELECT d.*, p.qualite 
                          FROM demande d 
                          JOIN personnel p ON d.CIN = p.cin 
-                         WHERE d.Etat = 0 
-                         AND (p.qualite IN ("CD", "RH", "DG") OR d.Etat = 0) ORDER BY d.ID DESC');
+                         WHERE d.Etat = -2 
+                         ORDER BY d.ID DESC');
     $req->execute();
     return $req;
 }
 
+
 function DemandesPourValidationDG() {
     $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
     $req = $bdd->prepare('SELECT d.*, p.qualite 
-                         FROM demande d 
-                         JOIN personnel p ON d.CIN = p.cin 
-                         WHERE (d.Etat = 1 OR p.qualite IN ("CD", "RH", "DG"))
-                         AND d.Etat IN (0, 2) ORDER BY d.ID DESC');
+                          FROM demande d 
+                          JOIN personnel p ON d.CIN = p.cin 
+                          WHERE d.Etat IN (2, -2, 1) 
+                                OR (d.Etat = 0 AND p.qualite IN ("CD", "DG", "RH"))
+                          ORDER BY d.ID DESC');
     $req->execute();
     return $req;
 }
+
+
 
 function getChefDeDepartement($service) {
     $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
@@ -411,7 +417,7 @@ function EtatDemande($id, $val) {
     connexionBdd($bdd);
 
     // Ancien état de la demande
-    $ancienEtat = InfosDemandes($id); // Devrait retourner -1, 0 ou 1
+    $ancienEtat = InfosDemandes($id); // Devrait retourner -1, 0 ou 1 ou 2
 
     // Mise à jour de l'état de la demande
     $req = $bdd->prepare('UPDATE demande SET Etat = :petat WHERE ID = :pid');
@@ -438,8 +444,7 @@ function EtatDemande($id, $val) {
 
     // 1. Refus de la demande → rendre les jours
     if ($val == -1) {
-        // Rendre les jours : d'abord dans l'année actuelle
-        if ($actuel + $diffDays <= 30) { // ajuster ce seuil selon tes règles
+        if ($actuel + $diffDays <= 30) {
             $actuel += $diffDays;
         } else {
             $reste = ($actuel + $diffDays) - 30;
@@ -459,7 +464,18 @@ function EtatDemande($id, $val) {
         }
     }
 
-    // 3. Mise à jour des soldes
+    // 3. Acceptation par DG → retirer les jours si ce n’était pas déjà fait
+    elseif ($val == 2 && ($ancienEtat == 0 || $ancienEtat == 1)) {
+        if ($precedent >= $diffDays) {
+            $precedent -= $diffDays;
+        } else {
+            $reste = $diffDays - $precedent;
+            $precedent = 0;
+            $actuel -= $reste;
+        }
+    }
+
+    // 4. Mise à jour des soldes
     $req = $bdd->prepare('UPDATE personnel SET 
         conges_restants_annee_precedente = :precedent,
         conges_annee_en_cours = :actuel
@@ -662,14 +678,15 @@ function notificationsDG() {
     $sql = "SELECT COUNT(*) AS NbenAttente 
             FROM demande d
             JOIN personnel p ON d.CIN = p.cin
-            WHERE (d.Etat = 1 OR p.qualite IN ('CD', 'RH', 'DG'))
-            AND d.Etat != 2"; // Exclure les demandes déjà acceptées par DG (Etat = 2)
+            WHERE d.Etat = 1 
+               OR (d.Etat = 0 AND p.qualite IN ('CD', 'RH', 'DG'))";
 
     $req = $bdd->prepare($sql);
     $req->execute();
     $rep = $req->fetch();
     return $rep['NbenAttente'];
 }
+
 
 
 

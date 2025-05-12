@@ -200,6 +200,12 @@ session_start();
                 width: 100%;
             }
         }
+        @media (max-width: 600px) {
+            body {
+                margin-left: 0;
+                
+            }
+        }
         
         /* Animation */
         @keyframes fadeInUp {

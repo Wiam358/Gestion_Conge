@@ -315,7 +315,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 margin-left: 0;
                 
             }
+            .table-responsive{
+                padding: 0;
+                width: 500px;
+            }
         }
+
+        .demands-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(60, 179, 113, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .demands-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 10px;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        .table th {
+            background-color: #3CB371;
+            color: white;
+            position: sticky;
+            top: 0;
+            padding: 12px 15px;
+            text-align: center;
+            border: none;
+        }
+        
+        .table td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .table tr:nth-child(even) {
+            background-color: rgba(60, 179, 113, 0.05);
+        }
+        
+        .table tr:hover {
+            background-color: rgba(60, 179, 113, 0.1);
+        }
+        
+        .state-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+        
+        .state-pending {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #856404;
+        }
+        
+        .state-accepted {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: #155724;
+        }
+        
+        .state-refused {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #721C24;
+        }
+
     </style>
 </head>
 <body>
@@ -408,63 +484,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <!-- Onglet Historique -->
             <div class="tab-pane fade" id="historique" role="tabpanel">
-                <div class="table-responsive">
-                    <table class="table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th class="mobile-hide">Type</th>
-                                <th class="mobile-hide">Date demande</th>
-                                <th>Début</th>
-                                <th>Fin</th>
-                                <th>Jours</th>
-                                <th>Etat</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $reqHistory = $bdd->prepare("SELECT * FROM demande WHERE CIN = ? AND Etat != 0 ORDER BY DateDemande DESC");
-                            $reqHistory->execute([$_SESSION['cin']]);
-                            
-                            while($demande = $reqHistory->fetch()) {
-                                $Etat = $demande['Etat'];
-                                switch ($Etat) {
-                                    case '-1':
-                                        $Etat = '<span class="status status-rejected">Refusée par le CD</span>';
-                                        break;
-                                    case '1':
-                                        $Etat = '<span class="status status-approved">Acceptée par le CD</span>';
-                                        break;
-                                    case '2': 
-                                        $Etat = '<span class="status status-approved">Acceptée par le DG</span>';
-                                        break;
-                                    default:
-                                        $Etat = '<span class="status status-rejected">Inconnu</span>';
-                                        break;
-                                }
+    <div class="demands-card animate__animated animate__fadeInUp">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th class="mobile-hide">Type</th>
+                        <th class="mobile-hide">Demandé</th>
+                        <th>Début</th>
+                        <th>Fin</th>
+                        <th>Jours</th>
+                        <th>État</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $reqHistory = $bdd->prepare("SELECT * FROM demande WHERE CIN = ? AND Etat != 0 ORDER BY DateDemande DESC");
+                    $reqHistory->execute([$_SESSION['cin']]);
 
-                                $days = dateDiff($demande['DateRetour'], $demande['DateDepart']) + 1;
-                                echo '<tr>
-                                        <td>'.$demande['ID'].'</td>
-                                        <td class="mobile-hide">'.$demande['type'].'</td>
-                                        <td class="mobile-hide">'.$demande['DateDemande'].'</td>
-                                        <td>'.date('d/m/y', strtotime($demande['DateDepart'])).'</td>
-                                        <td>'.date('d/m/y', strtotime($demande['DateRetour'])).'</td>
-                                        <td>'.$days.'</td>
-                                        <td>'.$Etat.'</td>
-                                      </tr>';
-                            }
-                            
-                            if($reqHistory->rowCount() == 0) {
-                                echo '<tr><td colspan="7" class="text-center">Aucune demande dans l\'historique</td></tr>';
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                    while($demande = $reqHistory->fetch()) {
+                        $Etat = $demande['Etat'];
+                        switch ($Etat) {
+                            case '-2':
+                                $EtatClass = 'state-refused';
+                                $EtatText = 'Refusée par DG';
+                                break;
+                            case '-1':
+                                $EtatClass = 'state-refused';
+                                $EtatText = 'Refusée par CD';
+                                break;
+                            case '1':
+                                $EtatClass = 'state-accepted';
+                                $EtatText = 'Acceptée par CD';
+                                break;
+                            case '2': 
+                                $EtatClass = 'state-accepted';
+                                $EtatText = 'Acceptée par DG';
+                                break;
+                            default:
+                                $EtatClass = 'state-refused';
+                                $EtatText = 'Inconnu';
+                                break;
+                        }
+
+                        $days = dateDiff($demande['DateRetour'], $demande['DateDepart']) + 1;
+                        echo '<tr>
+                                <td>'.$demande['ID'].'</td>
+                                <td class="mobile-hide">'.$demande['type'].'</td>
+                                <td class="mobile-hide">'.$demande['DateDemande'].'</td>
+                                <td>'.date('d/m/y', strtotime($demande['DateDepart'])).'</td>
+                                <td>'.date('d/m/y', strtotime($demande['DateRetour'])).'</td>
+                                <td>'.$days.'</td>
+                                <td><span class="state-badge '.$EtatClass.'">'.$EtatText.'</span></td>
+                              </tr>';
+                    }
+                    
+                    if($reqHistory->rowCount() == 0) {
+                        echo '<tr><td colspan="7" class="text-center">Aucune demande dans l\'historique</td></tr>';
+                    }
+                    ?>
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
     
     <!-- Modal de modification (identique à votre version) -->
     <div class="modal fade" id="modalModifier" tabindex="-1" aria-labelledby="modalModifierLabel" aria-hidden="true">
