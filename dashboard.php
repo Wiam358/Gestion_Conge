@@ -374,7 +374,7 @@
                         <div class="stat-label">Demandes à valider</div>
                     </div>
                     
-                    <!-- Carte 2: Demandes approuvées ce mois -->
+                    <!-- Carte 2: Demandes approuvées ce mois
                     <div class="stat-card">
                         <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
                         <div class="stat-value">
@@ -390,7 +390,7 @@
                             ?>
                         </div>
                         <div class="stat-label">Validées ce mois</div>
-                    </div>
+                    </div> -->
                     
                     <!-- Carte 3: Membres de l'équipe -->
                     <div class="stat-card">
@@ -405,6 +405,18 @@
                             ?>
                         </div>
                         <div class="stat-label">Membres d'équipe</div>
+                    </div>
+                    <!-- Carte 2: Demandes en attente CD -->
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                        <div class="stat-value">
+                            <?php 
+                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 0 AND cin = ?");
+                            $req->execute([$_SESSION['cin']]);
+                            echo $req->fetchColumn();
+                            ?>
+                        </div>
+                        <div class="stat-label">Demandes en attente</div>
                     </div>
                     
                     <!-- Carte 4: Solde de congés du CD -->
@@ -469,7 +481,7 @@
                         <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
                         <div class="stat-value">
                             <?php 
-                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 1 
+                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 2 
                                                  AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) 
                                                  AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
                             $req->execute();
