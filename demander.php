@@ -241,7 +241,7 @@ if (isset($_POST['datedepart']) && isset($_POST['dateretour'])) {
                         <option value="" selected disabled>-- Sélectionnez un type --</option>
                         <option value="Annuel">Annuel</option>
                         <option value="Maladie">Maladie</option>
-                        <option value="Cas exceptionnel">Cas exceptionnel</option>
+                        <option value="Autre">Autre</option>
                     </select>
                 </div>
                 

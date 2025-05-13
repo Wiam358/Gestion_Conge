@@ -69,6 +69,18 @@ $membresEquipe = $req->fetchAll();
         h2{
             color: seagreen;
         }
+        @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.table tbody tr {
+    animation: fadeIn 0.5s ease forwards;
+}
+.table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
     </style>
 </head>
 <body>
@@ -99,8 +111,8 @@ $membresEquipe = $req->fetchAll();
                             <td><?= htmlspecialchars($membre['nom']) ?></td>
                             <td><?= htmlspecialchars($membre['prenom']) ?></td>
                             <td><?= htmlspecialchars($membre['cin']) ?></td>
-                            <td><?= htmlspecialchars($membre['email']) ?></td>
-                            <td><?= htmlspecialchars($membre['tel']) ?></td>
+                            <td><i class="bi bi-envelope"></i> <?= htmlspecialchars($membre['email']) ?></td>
+                            <td><i class="bi bi-telephone"></i> <?= htmlspecialchars($membre['tel']) ?></td>
                             <td>
                                 <?= htmlspecialchars($membre['service']) ?>
                                 

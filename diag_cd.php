@@ -228,6 +228,7 @@ try {
             <div class="card-header">
                 <h4><i class="bi bi-list-ul"></i> Congés en cours dans votre équipe</h4>
             </div>
+            <br>
             <div class="card-body">
                 <?php if(empty($congesEnCours)): ?>
                     <div class="alert alert-success">

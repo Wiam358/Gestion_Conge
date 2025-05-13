@@ -399,7 +399,7 @@
                             <?php 
                             $req = $bdd->prepare("SELECT COUNT(*) FROM personnel 
                                                  WHERE depart = 
-                                                 (SELECT depart FROM personnel WHERE cin = ?)");
+                                                 (SELECT depart FROM personnel WHERE cin = ? )");
                             $req->execute([$_SESSION['cin']]);
                             echo $req->fetchColumn();
                             ?>
@@ -408,18 +408,29 @@
                     </div>
                     
                     <!-- Carte 4: Solde de congés du CD -->
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-calendar-plus"></i></div>
-                        <div class="stat-value">
-                            <?php 
-                            $req = $bdd->prepare("SELECT (conges_restants_annee_precedente + conges_annee_en_cours) 
-                                                 FROM personnel WHERE cin = ?");
-                            $req->execute([$_SESSION['cin']]);
-                            echo $req->fetchColumn();
-                            ?>
-                        </div>
-                        <div class="stat-label">Jours de congé disponibles</div>
-                    </div>
+                    
+                        <?php 
+                        connexionBdd($bdd);
+                        $req = $bdd->prepare("
+                                                SELECT 
+                                                    conges_restants_annee_precedente,
+                                                    conges_annee_en_cours,
+                                                    (conges_restants_annee_precedente + conges_annee_en_cours) AS total_conges_disponibles
+                                                FROM personnel 
+                                                WHERE cin = ?
+                                            ");
+                                            $req->execute([$_SESSION['cin']]);
+                                            $conges = $req->fetch();
+                                            echo '<div class="stat-card">
+                            <div class="stat-icon"><i class="bi bi-calendar-plus"></i></div>
+                            <div class="stat-value">'.$conges['total_conges_disponibles'].'</div>
+                            <div class="stat-label">Jours de congé disponibles</div>
+                            <div class="stat-subtext">
+                                <small>'.$conges['conges_annee_en_cours'].' jours cette année + '.$conges['conges_restants_annee_precedente'].' jours reportés</small>
+                            </div>
+                        </div>';
+                                            ?>
+                    
                 </div>
                 
                 <!-- Section Alertes pour le CD -->
@@ -502,18 +513,27 @@
                     </div>
                     
                     <!-- Carte 4: Solde de congés du DG -->
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-calendar-plus"></i></div>
-                        <div class="stat-value">
-                            <?php 
-                            $req = $bdd->prepare("SELECT (conges_restants_annee_precedente + conges_annee_en_cours) 
-                                                 FROM personnel WHERE cin = ?");
-                            $req->execute([$_SESSION['cin']]);
-                            echo $req->fetchColumn();
-                            ?>
-                        </div>
-                        <div class="stat-label">Jours de congé disponibles</div>
-                    </div>
+                    <?php 
+                        connexionBdd($bdd);
+                        $req = $bdd->prepare("
+                                                SELECT 
+                                                    conges_restants_annee_precedente,
+                                                    conges_annee_en_cours,
+                                                    (conges_restants_annee_precedente + conges_annee_en_cours) AS total_conges_disponibles
+                                                FROM personnel 
+                                                WHERE cin = ?
+                                            ");
+                                            $req->execute([$_SESSION['cin']]);
+                                            $conges = $req->fetch();
+                                            echo '<div class="stat-card">
+                            <div class="stat-icon"><i class="bi bi-calendar-plus"></i></div>
+                            <div class="stat-value">'.$conges['total_conges_disponibles'].'</div>
+                            <div class="stat-label">Jours de congé disponibles</div>
+                            <div class="stat-subtext">
+                                <small>'.$conges['conges_annee_en_cours'].' jours cette année + '.$conges['conges_restants_annee_precedente'].' jours reportés</small>
+                            </div>
+                        </div>';
+                                            ?>
                 </div>
                 
                 <!-- Section Détails par Département -->
@@ -618,12 +638,12 @@ if ($qualite === 'DG' || $qualite === 'CD'):
                         <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
                         <div class="stat-value">
                             <?php 
-                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 1");
-                            $req->execute();
+                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 0 AND cin = ?");
+                            $req->execute([$_SESSION['cin']]);
                             echo $req->fetchColumn();
                             ?>
                         </div>
-                        <div class="stat-label">Décision(s) de congé en attente</div>
+                        <div class="stat-label">Demandes en attente</div>
                     </div>
                     
                     <!-- Carte 3: Demandes refusées RH
@@ -737,10 +757,12 @@ if ($qualite === 'DG' || $qualite === 'CD'):
             <div class="calendar-system">
     <div class="calendar-responsive-container">
         <div class="calendar-header">
-                            <h2 class="mb-4 fw-bold" style="color: var(--primary-color);">Analyse des Congés</h2>
+                            <h2 class="mb-4 fw-bold" style="color: var(--primary-color);">Calendrier</h2>
+                        
             <button id="addEventBtn" class="btn-add-event">
                 <i class="bi bi-plus-circle"></i> Ajouter un événement
             </button>
+                           
         </div>
         <div id="calendar"></div>
     </div>
