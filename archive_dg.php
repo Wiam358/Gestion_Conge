@@ -101,6 +101,10 @@ $departements = $bdd->query($query_departements);
     }
     h3{
         color: var(--primary-dark);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
     }
     
     @media (max-width: 992px) {
