@@ -104,9 +104,9 @@ if(isset($_POST['newValue'])){
         
         .dashboard-card {
             background: white;
-            border-radius: 12px;
+            /* border-radius: 12px; */
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            border-top: 4px solid var(--primary);
+            /* border-top: 4px solid var(--primary); */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
@@ -314,7 +314,7 @@ if(isset($_POST['newValue'])){
                         <?php while($donnees = $reponse->fetch()): ?>
                         <tr>
                             <td><strong><?= htmlspecialchars($donnees['cin']) ?></strong></td>
-                            <td><?= htmlspecialchars($donnees['nom']) ?></td>
+                            <td><?= strtoupper(htmlspecialchars($donnees['nom'])) ?></td>
                             <td><?= htmlspecialchars($donnees['prenom']) ?></td>
                             <td><?= htmlspecialchars($donnees['service']) ?></td>
                             <td><?= htmlspecialchars($donnees['depart']) ?></td>

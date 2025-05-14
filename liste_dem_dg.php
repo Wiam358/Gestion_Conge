@@ -381,6 +381,7 @@ function DemandesAccepteesParChefss() {
                             <th>Service</th>
                             <th>Dates</th>
                             <th>Jours</th>
+                            <th>Description</th>
                             <th>Pré-validation</th>
                             <th>État</th>
                             <th>Actions</th>
@@ -396,7 +397,7 @@ function DemandesAccepteesParChefss() {
                         <tr>
                             <td><?= htmlspecialchars($donnees['ID']) ?></td>
                             <td>
-                                <strong><?= htmlspecialchars($infos['nom']) ?> <?= htmlspecialchars($infos['prenom']) ?></strong>
+                                <strong><?= strtoupper(htmlspecialchars($infos['nom'])) ?> <?= htmlspecialchars($infos['prenom']) ?></strong>
                                 <div class="small text-muted"><?= htmlspecialchars($donnees['CIN']) ?></div>
                             </td>
                             <td><?= htmlspecialchars($infos['service']) ?></td>
@@ -406,6 +407,9 @@ function DemandesAccepteesParChefss() {
                             </td>
                             <td>
                                 <span class="badge bg-light text-dark"><?= $days ?> jours</span>
+                            </td>
+                           <td>
+                                <?= !empty($donnees['description']) ? htmlspecialchars($donnees['description']) : '---' ?>
                             </td>
                             <td>
     <?php 
@@ -438,22 +442,24 @@ function DemandesAccepteesParChefss() {
 
 <td>
     <div class="action-buttons d-flex gap-2">
-        <?php if($donnees['Etat'] != -2 && $donnees['Etat'] != 2): ?>
-            <form method="post">
-                <input type="hidden" name="valider" value="<?= $donnees['ID'] ?>">
-                <button type="button" class="btn btn-success btn-validate" data-id="<?= $donnees['ID'] ?>">
-                    <i class="bi bi-check"></i>
-                </button>
+    <?php if($donnees['Etat'] != -2 && $donnees['Etat'] != 2): ?>
+        <form method="post">
+            <input type="hidden" name="valider" value="<?= $donnees['ID'] ?>">
+            <button type="button" class="btn btn-success btn-validate" data-id="<?= $donnees['ID'] ?>">
+                <i class="bi bi-check"></i>
+            </button>
+        </form>
+        <form method="post">
+            <input type="hidden" name="rejeter" value="<?= $donnees['ID'] ?>">
+            <button type="button" class="btn btn-danger btn-reject" data-id="<?= $donnees['ID'] ?>">
+                <i class="bi bi-x"></i>
+            </button>
+        </form>
+    <?php else: ?>
+        <span class="badge bg-secondary">Déjà traitée</span>
+    <?php endif; ?>
+</div>
 
-            </form>
-            <form method="post">
-                <input type="hidden" name="rejeter" value="<?= $donnees['ID'] ?>">
-                <button type="button" class="btn btn-danger btn-reject" data-id="<?= $donnees['ID'] ?>">
-                    <i class="bi bi-x"></i>
-                </button>
-
-            </form>
-        <?php endif; ?>
     </div>
 </td>
                         </tr>

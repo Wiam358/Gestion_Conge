@@ -174,7 +174,7 @@ if(isset($_POST['pass']) && isset($_POST['login'])) {
             session_start();
             $_SESSION['cin'] = $resultat['cin'];
             $_SESSION['login'] = $_POST['login'];
-            $_SESSION['nom'] = $resultat['nom'];
+            $_SESSION['nom'] = strtoupper($resultat['nom']);
             $_SESSION['prenom'] = $resultat['prenom'];
             $_SESSION['qualite'] = $resultat['qualite'];
             $_SESSION['depart']= $resultat['depart'];

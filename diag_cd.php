@@ -248,7 +248,7 @@ try {
                             <tbody>
                                 <?php foreach($congesEnCours as $conge): ?>
                                 <tr class="<?= $conge['jours_restants'] <= 3 ? 'conge-urgent' : '' ?>">
-                                    <td><?= htmlspecialchars($conge['prenom'].' '.$conge['nom']) ?></td>
+                                    <td><?= htmlspecialchars($conge['prenom'].' '.strtoupper($conge['nom'])) ?></td>
                                     <td>
                                         <span class="badge badge-conge bg-<?= 
                                             $conge['type'] == 'annuel' ? 'primary' : 

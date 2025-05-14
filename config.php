@@ -759,4 +759,15 @@ function getCongesEnCours() {
                        ORDER BY d.DateDepart");
     return $req->fetchAll();
 }
+function InfosPersonnelFromDivAndCIN($depart, $cin) {
+    global $connexion;
+    $req = $connexion->prepare("SELECT * FROM personnel WHERE depart = :depart AND cin = :cin");
+    $req->execute([
+        'depart' => $depart,
+        'cin' => $cin
+    ]);
+    return $req;
+}
+
 ?>
+

@@ -64,7 +64,7 @@ if(isset($_POST['grades']) && $_POST['grades'] != "false") {
             background: white;
             border-radius: 12px;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            border-top: 4px solid var(--primary);
+            /* border-top: 4px solid var(--primary); */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
@@ -165,7 +165,7 @@ if(isset($_POST['grades']) && $_POST['grades'] != "false") {
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="header-title mb-0">
                     <i class="bi bi-people-fill header-icon"></i>
-                    Gestion du Personnel
+                    MEMBRE D'ORGANISME | CCISCS
                 </h2>
                 <div>
                     <span class="badge bg-secondary">
@@ -249,7 +249,7 @@ if(isset($_POST['grades']) && $_POST['grades'] != "false") {
                         <?php while($donnees = $reponse->fetch()): ?>
                         <tr>
                             <td><strong><?= htmlspecialchars($donnees['cin']) ?></strong></td>
-                            <td><?= htmlspecialchars($donnees['nom']) ?></td>
+                            <td><?= strtoupper(htmlspecialchars($donnees['nom'])) ?></td>
                             <td><?= htmlspecialchars($donnees['prenom']) ?></td>
                             <td><?= htmlspecialchars($donnees['service']) ?></td>
                             <td><?= htmlspecialchars($donnees['depart']) ?></td>

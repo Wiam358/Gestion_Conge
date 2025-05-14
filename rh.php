@@ -267,7 +267,7 @@ if(isset($_GET['mark_printed'])) {
                                 <tr>
                                     <td><?= htmlspecialchars($donnees['ID']) ?></td>
                                     <td>
-                                        <strong><?= htmlspecialchars($infos['nom']) ?> <?= htmlspecialchars($infos['prenom']) ?></strong>
+                                        <strong><?= strtoupper(htmlspecialchars($infos['nom'])) ?> <?= htmlspecialchars($infos['prenom']) ?></strong>
                                         <div class="small text-muted"><?= htmlspecialchars($donnees['CIN']) ?></div>
                                     </td>
                                     <td><?= htmlspecialchars($infos['service']) ?></td>
@@ -286,7 +286,7 @@ if(isset($_GET['mark_printed'])) {
                                         <div class="action-buttons d-flex gap-2 justify-content-center">
                                             <button onclick="imprimerDecision(
                                                 '<?= $donnees['ID'] ?>',
-                                                '<?= htmlspecialchars(addslashes($infos['nom'].' '.$infos['prenom'])) ?>',
+                                                '<?= htmlspecialchars(addslashes(strtoupper($infos['nom']).' '.$infos['prenom'])) ?>',
                                                 '<?= htmlspecialchars($donnees['CIN']) ?>',
                                                 '<?= htmlspecialchars($infos['service']) ?>',
                                                 '<?= date('d/m/Y', strtotime($donnees['DateDepart'])) ?>',
@@ -304,11 +304,7 @@ if(isset($_GET['mark_printed'])) {
                     </div>
                 </div>
                 
-                <div class="text-center no-print mt-4">
-                    <button onclick="imprimerToutesDecisions()" class="btn btn-validate text-white" style="padding: 10px 20px;">
-                        <i class="bi bi-printer-fill"></i> Imprimer toutes les décisions
-                    </button>
-                </div>
+                
             </div>
             
             <!-- Onglet Archive -->
@@ -340,7 +336,7 @@ if(isset($_GET['mark_printed'])) {
                                 <tr>
                                     <td><?= htmlspecialchars($archiveDonnees['ID']) ?></td>
                                     <td>
-                                        <strong><?= htmlspecialchars($archiveInfos['nom']) ?> <?= htmlspecialchars($archiveInfos['prenom']) ?></strong>
+                                        <strong><?= htmlspecialchars(strtoupper($archiveInfos['nom'])) ?> <?= htmlspecialchars($archiveInfos['prenom']) ?></strong>
                                         <div class="small text-muted"><?= htmlspecialchars($archiveDonnees['CIN']) ?></div>
                                     </td>
                                     <td><?= htmlspecialchars($archiveInfos['service']) ?></td>
@@ -359,6 +355,11 @@ if(isset($_GET['mark_printed'])) {
                         </table>
                     </div>
                 </div>
+                <div class="text-center no-print mt-4">
+                    <button onclick="imprimerToutesDecisions()" class="btn btn-validate text-white" style="padding: 10px 20px;">
+                        <i class="bi bi-printer-fill"></i> Imprimer toutes les décisions
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -372,7 +373,7 @@ if(isset($_GET['mark_printed'])) {
             month: 'long',
             year: 'numeric'
         });
-        const managerName = "<?= htmlspecialchars($_SESSION['nom'] ?? '') ?> <?= htmlspecialchars($_SESSION['prenom'] ?? '') ?>";
+        const managerName = "<?= strtoupper(htmlspecialchars($_SESSION['nom']) ?? '') ?> <?= htmlspecialchars($_SESSION['prenom'] ?? '') ?>";
 
         printWindow.document.write(`
             <!DOCTYPE html>
@@ -555,54 +556,44 @@ if(isset($_GET['mark_printed'])) {
 }
     
     function imprimerToutesDecisions() {
-        // Créer une nouvelle fenêtre
-        const printWindow = window.open('', '_blank');
-        
-        // Récupérer le contenu du tableau
-        const tableau = document.querySelector('#imprimante .table-responsive').outerHTML;
-        
-        // Écrire le contenu dans la nouvelle fenêtre
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Décisions de congé</title>
-                <style>
-                    body { font-family: Arial; margin: 1cm; }
-                    table { width: 100%; border-collapse: collapse; }
-                    th { background-color: #2E8B57; color: white; padding: 10px; text-align: center; }
-                    td { padding: 8px; text-align: center; border-bottom: 1px solid #ddd; }
-                    tr:nth-child(even) { background-color: #f9f9f9; }
-                    .badge { padding: 3px 8px; border-radius: 10px; font-weight: 500; }
-                    .text-muted { color: #6c757d; font-size: 0.9em; }
-                </style>
-            </head>
-            <body>
-                <h2 style="text-align:center;color:#2E8B57;">Décisions de congé validées</h2>
-                <p style="text-align:center;color:#555;">Document généré le ${new Date().toLocaleDateString('fr-FR')}</p>
-                ${tableau}
-            </body>
-            </html>
-        `);
-        
-        printWindow.document.close();
-        
-        // Lancer l'impression après un court délai
-        setTimeout(() => {
-            printWindow.print();
-            
-            // Marquer toutes les demandes comme imprimées
-            document.querySelectorAll('#imprimante tbody tr').forEach(row => {
-                const id = row.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)[1];
-                fetch(`?mark_printed=${id}`);
-            });
-            
-            // Recharger la page après un délai
-            setTimeout(() => location.reload(), 1000);
-            
-            printWindow.close();
-        }, 500);
-    }
+    // Créer une nouvelle fenêtre
+    const printWindow = window.open('', '_blank');
+    
+    // Récupérer le contenu du tableau ARCHIVE
+    const tableau = document.querySelector('#archive .table-responsive').outerHTML;
+    
+    // Écrire le contenu dans la nouvelle fenêtre
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Archives des décisions de congé</title>
+            <style>
+                body { font-family: Arial; margin: 1cm; }
+                table { width: 100%; border-collapse: collapse; }
+                th { background-color: #2E8B57; color: white; padding: 10px; text-align: center; }
+                td { padding: 8px; text-align: center; border-bottom: 1px solid #ddd; }
+                tr:nth-child(even) { background-color: #f9f9f9; }
+                .badge { padding: 3px 8px; border-radius: 10px; font-weight: 500; }
+                .text-muted { color: #6c757d; font-size: 0.9em; }
+            </style>
+        </head>
+        <body>
+            <h2 style="text-align:center;color:#2E8B57;">Archives des décisions de congé</h2>
+            <p style="text-align:center;color:#555;">Document généré le ${new Date().toLocaleDateString('fr-FR')}</p>
+            ${tableau}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Lancer l'impression après un court délai
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
     </script>
     
 </body>

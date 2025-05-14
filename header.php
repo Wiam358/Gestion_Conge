@@ -209,7 +209,7 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="MesDemandes.php">
-                    <i class="bi bi-archive-fill"></i> Mes demandes
+                    <i class="bi bi-journal-text"></i> Mes demandes
                 </a>
             </li>
 
@@ -218,6 +218,7 @@
                 if ($_SESSION['qualite'] === 'DG') {
                     echo '<li class="nav-item"><a class="nav-link" href="liste_dem_dg.php"><i class="bi bi-list"></i> Liste des demandes</a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="liste_perso_dg.php"><i class="bi bi-people-fill"></i> Les personnels </a></li>';
+                                        echo '<li class="nav-item"><a class="nav-link" href="archive_dg.php"><i class="bi bi-archive-fill"></i> Archive </a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="diag_dg.php"><i class="bi bi-bar-chart"></i> Visualisation </a></li>';
                 }
                 if ($_SESSION['qualite'] === 'CD') {
@@ -227,9 +228,9 @@
 
                 }
                 if ($_SESSION['qualite'] === 'RH') {
-                    echo '<li class="nav-item"><a class="nav-link" href="listePersonnels.php"><i class="bi bi-list"></i> Les personnels</a></li>';
-                    echo '<li class="nav-item"><a class="nav-link" href="Inscription.php"><i class="bi bi-person-fill-add"></i> Ajouter un personnel</a></li>';
-                    echo '<li class="nav-item"><a class="nav-link" href="rh.php"><i class="bi bi-printer-fill"></i> Décision</a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="listePersonnels.php"><i class="bi bi-list"></i> Personnels</a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="Inscription.php"><i class="bi bi-person-fill-add"></i> Inscription</a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="rh.php"><i class="bi bi-printer-fill"></i> Imprimante</a></li>';
                 }
             }
             ?>

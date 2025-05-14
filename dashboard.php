@@ -729,21 +729,35 @@ if ($qualite === 'DG' || $qualite === 'CD'):
                     
                     <!-- Carte 2: Mois le plus chargé -->
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-calendar-month"></i></div>
-                        <div class="stat-value">
-                            <?php 
-                            $req = $bdd->prepare("SELECT MONTHNAME(DateDepart) FROM 
-                                                (SELECT DateDepart, MONTH(DateDepart) as mois, COUNT(*) as nb 
-                                                 FROM demande WHERE Etat = 2 AND YEAR(DateDepart) = YEAR(CURRENT_DATE())
-                                                 GROUP BY MONTH(DateDepart) 
-                                                 ORDER BY nb DESC 
-                                                 LIMIT 1) as top_mois");
-                            $req->execute();
-                            echo $req->fetchColumn();
-                            ?>
-                        </div>
-                        <div class="stat-label">Mois le plus chargé</div>
-                    </div>
+    <div class="stat-icon"><i class="bi bi-calendar-month"></i></div>
+    <div class="stat-value">
+        <?php 
+        // Récupérer le numéro du mois le plus chargé
+        $req = $bdd->prepare("SELECT mois FROM 
+                            (SELECT MONTH(DateDepart) as mois, COUNT(*) as nb 
+                             FROM demande 
+                             WHERE Etat = 2 AND YEAR(DateDepart) = YEAR(CURRENT_DATE()) 
+                             GROUP BY mois 
+                             ORDER BY nb DESC 
+                             LIMIT 1) as top_mois");
+        $req->execute();
+        $moisNum = $req->fetchColumn();
+
+        // Tableau de traduction des mois en français
+        $moisFrancais = [
+            1 => 'Janvier', 2 => 'Février', 3 => 'Mars',
+            4 => 'Avril', 5 => 'Mai', 6 => 'Juin',
+            7 => 'Juillet', 8 => 'Août', 9 => 'Septembre',
+            10 => 'Octobre', 11 => 'Novembre', 12 => 'Décembre'
+        ];
+
+        // Afficher le mois en français
+        echo $moisFrancais[(int)$moisNum] ?? 'Inconnu';
+        ?>
+    </div>
+    <div class="stat-label">Mois le plus chargé</div>
+</div>
+
                     
                     <!-- Carte 3: Département avec le plus de demandes -->
                     <div class="stat-card">

@@ -398,7 +398,7 @@ if(isset($_GET['enAttente'])) {
                             $lien = "listeDemandes.php?".$path;
                         ?>
                         <tr>
-                            <td><?= htmlspecialchars($infos['nom']) ?> <?= htmlspecialchars($infos['prenom']) ?></td>
+                            <td><?= strtoupper(htmlspecialchars($infos['nom'])) ?> <?= htmlspecialchars($infos['prenom']) ?></td>
                             <td><?= htmlspecialchars($donnees['ID']) ?></td>
                             <td><?= htmlspecialchars($donnees['DateDemande']) ?></td>
                             <td><?= htmlspecialchars($donnees['DateDepart']) ?></td>

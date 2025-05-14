@@ -82,7 +82,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pass'])) {
     background: white;
     border-radius: 12px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-    border-top: 4px solid var(--primary);
+    /* border-top: 4px solid var(--primary); */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     overflow: hidden;
     /* Nouvelles propriétés pour le centrage */

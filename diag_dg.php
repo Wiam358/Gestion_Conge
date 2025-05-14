@@ -119,7 +119,7 @@ $congesEnCours = $reqEnCours->fetchAll();
                             $jours = (strtotime($conge['DateRetour']) - strtotime($conge['DateDepart'])) / (60 * 60 * 24) + 1;
                         ?>
                         <tr>
-                            <td><?= htmlspecialchars($conge['nom']) ?></td>
+                            <td><?= strtoupper(htmlspecialchars($conge['nom'])) ?></td>
                             <td><?= htmlspecialchars($conge['prenom']) ?></td>
                             <td><?= htmlspecialchars($conge['depart']) ?></td>
                             <td><?= htmlspecialchars($conge['DateDepart']) ?></td>
