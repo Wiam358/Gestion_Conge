@@ -71,6 +71,7 @@ if (isset($_POST['datedepart']) && isset($_POST['dateretour'])) {
     <title>Demander un congé | CCISCS</title>
     <link rel="icon" type="image/png" href="photos/cciscs.png" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
@@ -283,6 +284,35 @@ if (isset($_POST['datedepart']) && isset($_POST['dateretour'])) {
         });
     });
 });
+
+function isWeekend(dateStr) {
+    const date = new Date(dateStr);
+    const day = date.getDay(); // 0 = Sunday, 6 = Saturday
+    return day === 0 || day === 6;
+}
+
+document.getElementById('datedepart').addEventListener('change', function () {
+    if (isWeekend(this.value)) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Jour non autorisé',
+            text: 'Vous ne pouvez pas sélectionner un samedi ou un dimanche comme date de début.',
+        });
+        this.value = '';
+    }
+});
+
+document.getElementById('dateretour').addEventListener('change', function () {
+    if (isWeekend(this.value)) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Jour non autorisé',
+            text: 'Vous ne pouvez pas sélectionner un samedi ou un dimanche comme date de fin.',
+        });
+        this.value = '';
+    }
+});
+
     </script>
 </body>
 </html>

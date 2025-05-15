@@ -18,6 +18,7 @@ $reqDept = $bdd->query('SELECT p.depart, COUNT(d.ID) as nb_conges
                        FROM demande d
                        JOIN personnel p ON d.CIN = p.cin
                        WHERE d.Etat = 2
+                       AND CURDATE() BETWEEN d.DateDepart AND d.DateRetour
                        GROUP BY p.depart');
 $congesParDept = $reqDept->fetchAll();
 
@@ -177,6 +178,7 @@ $congesEnCours = $reqEnCours->fetchAll();
                     <thead>
                         <tr>
                             <th>Nom</th>
+                            <th>Département</th>
                             <th>Type</th>
                             <th>Période</th>
                             <th>Jours restants</th>
@@ -189,6 +191,7 @@ $congesEnCours = $reqEnCours->fetchAll();
                         ?>
                         <tr class="<?= $jours_restants <= 3 ? 'conge-urgent' : '' ?>">
                             <td><?= htmlspecialchars($conge['prenom'].' '.strtoupper($conge['nom'])) ?></td>
+                            <td><?= htmlspecialchars($conge['depart']) ?></td>
                             <td>
                                 <span class="badge badge-conge bg-<?= 
                                     $conge['type'] == 'annuel' ? 'primary' : 

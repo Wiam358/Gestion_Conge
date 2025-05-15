@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de bord | CCISCS</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <!-- Animation Libraries -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
@@ -33,13 +37,11 @@
             --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
             --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
         }
-        body{
-            margin-left: 250px;
-        }
         
         .main-container {
+            margin-left: 250px;
             flex: 1;
-            padding: 2rem 0;
+            
             background-color: var(--secondary-color);
         }
         
@@ -128,7 +130,7 @@
             }
         }
         @media (max-width: 992px) {
-            body {
+            .main-container {
                 margin-left: 0;
                 
             }
@@ -192,76 +194,8 @@
 }
 
 
-.calendar-system {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-}
 
-.btn-add-event {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-}
 
-.btn-add-event:hover {
-    background-color: var(--primary-dark);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Styles du calendrier améliorés */
-.fc-event {
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.fc-event:hover {
-    transform: scale(1.02);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Couleurs des différents types d'événements */
-.fc-event-congé { background-color: var(--primary-light); border-color: var(--primary-color); }
-.fc-event-formation { background-color: #4e73df; border-color: #2e59d9; }
-.fc-event-réunion { background-color: #f6c23e; border-color: #dda20a; }
-
-/* Style du modal */
-.modal-content {
-    border: none;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
-}
-
-.modal-header {
-    background-color: var(--primary-color);
-    color: white;
-    border-bottom: none;
-}
-
-.modal-title {
-    font-weight: 600;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .calendar-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-    
-    .btn-add-event {
-        width: 100%;
-        justify-content: center;
-    }
-}
     </style>
 </head>
 <body>
@@ -272,7 +206,7 @@
     </div>
 </div>
     <?php 
-    include_once 'header.php';
+    
     include_once 'config.php';
     connexionBdd($bdd);
     
@@ -283,6 +217,8 @@
     ?>
     
     <div class="main-container">
+        <?php include_once 'header.php'; ?>
+        <br>
         <div class="dashboard-container">
             <h2 class="mb-4 fw-bold" style="color: var(--primary-color);">Tableau de Bord</h2>
             
@@ -365,7 +301,7 @@
                             <?php 
                             $req = $bdd->prepare("SELECT COUNT(*) FROM demande d 
                                                  JOIN personnel p ON d.cin = p.cin 
-                                                 WHERE d.Etat = 0 AND p.depart = 
+                                                 WHERE d.Etat = 0 AND p.qualite NOT IN ('CD', 'RH', 'DG') AND p.depart = 
                                                  (SELECT depart FROM personnel WHERE cin = ?)");
                             $req->execute([$_SESSION['cin']]);
                             echo $req->fetchColumn();
@@ -416,7 +352,7 @@
                             echo $req->fetchColumn();
                             ?>
                         </div>
-                        <div class="stat-label">Demandes en attente</div>
+                        <div class="stat-label">Mes demandes en attente</div>
                     </div>
                     
                     <!-- Carte 4: Solde de congés du CD -->
@@ -778,61 +714,9 @@ if ($qualite === 'DG' || $qualite === 'CD'):
                     </div>
                 </div>
             <?php endif; ?>
-            
-            <!-- Section Calendrier (commune à tous les rôles) -->
-            <div class="calendar-system">
-    <div class="calendar-responsive-container">
-        <div class="calendar-header">
-                            <h2 class="mb-4 fw-bold" style="color: var(--primary-color);">Calendrier</h2>
-                        
-            <button id="addEventBtn" class="btn-add-event">
-                <i class="bi bi-plus-circle"></i> Ajouter un événement
-            </button>
-                           
-        </div>
-        <div id="calendar"></div>
-    </div>
-
-    <!-- Modal d'ajout d'événement -->
-    <div class="modal fade" id="eventModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Nouvel Événement</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="eventForm">
-                        <div class="mb-3">
-                            <label for="eventTitle" class="form-label">Titre</label>
-                            <input type="text" class="form-control" id="eventTitle" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventStart" class="form-label">Date de début</label>
-                            <input type="datetime-local" class="form-control" id="eventStart" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventEnd" class="form-label">Date de fin</label>
-                            <input type="datetime-local" class="form-control" id="eventEnd">
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventType" class="form-label">Type d'événement</label>
-                            <select class="form-select" id="eventType">
-                                <option value="congé">Congé</option>
-                                <option value="formation">Formation</option>
-                                <option value="réunion">Réunion</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" id="saveEventBtn" class="btn btn-primary">Enregistrer</button>
-                </div>
+            <div class="calendrier">
+                <?php include('calendar.php'); ?>
             </div>
-        </div>
-    </div>
-</div>
         </div>
     </div>
     
@@ -931,77 +815,7 @@ if ($qualite === 'DG' || $qualite === 'CD'):
             }
         });
     });
-    document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        events: '/api/events',
-        eventContent: function(arg) {
-            return {
-                html: `<div class="fc-event-main">
-                         <i class="bi ${getEventIcon(arg.event.extendedProps.type)}"></i>
-                         ${arg.event.title}
-                       </div>`
-            };
-        },
-        editable: false // Seul le RH peut modifier
-    });
-
-    calendar.render();
-
-    // Gestion du modal
-    const eventModal = new bootstrap.Modal('#eventModal');
-    document.getElementById('addEventBtn').addEventListener('click', () => {
-        eventModal.show();
-    });
-
-    // Sauvegarde de l'événement
-    document.getElementById('saveEventBtn').addEventListener('click', async () => {
-        const eventData = {
-            title: document.getElementById('eventTitle').value,
-            start: document.getElementById('eventStart').value,
-            end: document.getElementById('eventEnd').value,
-            type: document.getElementById('eventType').value,
-            createdBy: 'RH' // Ou l'ID de l'utilisateur RH
-        };
-
-        try {
-            const response = await fetch('/api/events', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(eventData)
-            });
-
-            if (response.ok) {
-                calendar.refetchEvents();
-                eventModal.hide();
-                document.getElementById('eventForm').reset();
-            }
-        } catch (error) {
-            console.error('Erreur:', error);
-        }
-    });
-
-    // Connexion WebSocket pour les mises à jour en temps réel
-    const socket = io();
-    socket.on('event-updated', () => {
-        calendar.refetchEvents();
-    });
-
-    function getEventIcon(type) {
-        const icons = {
-            'congé': 'bi-umbrella',
-            'formation': 'bi-mortarboard',
-            'réunion': 'bi-people'
-        };
-        return icons[type] || 'bi-calendar-event';
-    }
-});
+//     
 </script>
 </body>
 </html>

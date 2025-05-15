@@ -564,7 +564,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
-    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Gestion du modal de modification
@@ -593,6 +593,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     e.preventDefault();
                 }
             });
+            const dateDepartInput = document.querySelector('input[name="datedepart"]');
+    const dateRetourInput = document.querySelector('input[name="dateretour"]');
+
+    function isWeekend(dateStr) {
+        const date = new Date(dateStr);
+        const day = date.getDay();
+        return day === 0 || day === 6; // 0 = dimanche, 6 = samedi
+    }
+
+    function checkAndAlert(input) {
+        const dateVal = input.value;
+        if (dateVal && isWeekend(dateVal)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Date invalide',
+                text: 'La date sélectionnée tombe un weekend. Veuillez choisir un jour ouvrable.',
+            }).then(() => {
+                input.value = ''; // réinitialiser
+            });
+        }
+    }
+
+    if (dateDepartInput) {
+        dateDepartInput.addEventListener('change', function() {
+            checkAndAlert(this);
+        });
+    }
+
+    if (dateRetourInput) {
+        dateRetourInput.addEventListener('change', function() {
+            checkAndAlert(this);
+        });
+    }
         });
     </script>
 </body>
