@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/google-calendar@6.1.8/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -287,11 +289,33 @@
       let calendarEl = document.getElementById('calendar'); // <-- Défini calendarEl ici
 
       let calendar = new FullCalendar.Calendar(calendarEl, {
+        
         initialView: 'dayGridMonth',
         locale: 'fr',
         selectable: true,
         events: 'load-events.php', // Charger les événements depuis la BDD
+        googleCalendarApiKey: 'AIzaSyAtqhp1afQG7EiPT_U5DeBFfcqlW11tcM4',
 
+        eventSources: [
+    {
+      url: 'load-events.php', // tes événements dynamiques
+      failure: () => {
+        Swal.fire('Erreur', 'Impossible de charger les événements.', 'error');
+      }
+    },
+    {
+      googleCalendarId: 'fr.french#holiday@group.v.calendar.google.com', // ou un autre calendrier selon ton pays
+      className: 'ferie-event',
+      color: '#ff6666',
+      textColor: '#fff'
+    },
+    {
+                    googleCalendarId: 'en.islamic#holiday@group.v.calendar.google.com',
+                    color: '#b39ddb',
+                    textColor: 'black',
+                    className: 'holiday-event'
+                }
+  ],
         dateClick: function (info) {
           document.getElementById('eventDate').value = info.dateStr;
           new bootstrap.Modal(document.getElementById('eventModal')).show();
