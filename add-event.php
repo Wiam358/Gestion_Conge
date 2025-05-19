@@ -15,14 +15,15 @@ try {
     $end = $data['end'];
     $event_type = $data['event_type'] ?? 'autre';
     $description = $data['description'] ?? '';
+    $visibility = $data['visibility'];
     $created_by = $_SESSION['cin']; // à adapter selon session
     $bgColor = '#3788d8';
     $textColor = '#ffffff';
 
-    $stmt = $bdd->prepare("INSERT INTO events (title, description, start_datetime, end_datetime, event_type, created_by, background_color, text_color, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+    $stmt = $bdd->prepare("INSERT INTO events (title, description, start_datetime, end_datetime, event_type, created_by, background_color, text_color, created_at, updated_at, visibility)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)");
 
-    $success = $stmt->execute([$title, $description, $start, $end, $event_type, $created_by, $bgColor, $textColor]);
+    $success = $stmt->execute([$title, $description, $start, $end, $event_type, $created_by, $bgColor, $textColor, $visibility]);
 
     echo json_encode(['success' => $success]);
 

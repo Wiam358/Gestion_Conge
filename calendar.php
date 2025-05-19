@@ -266,7 +266,15 @@
                 <input type="time" class="form-control" id="endTime" required>
             </div>
         </div>
-
+        <div class="row gx-3">
+            <div class="mb-3">
+                <label for="eventVisibility" class="form-label">Visibilité</label>
+                <select id="eventVisibility" class="form-select" required>
+                    <option value="public" selected>Public</option>
+                    <option value="private">Privé</option>
+                </select>
+            </div>
+        </div>
 
         <div class="mb-3">
             <label for="eventDescription" class="form-label">Description</label>
@@ -330,7 +338,7 @@
   const title = document.getElementById('eventTitle').value;
   const description = document.getElementById('eventDescription').value;
   const eventType = document.getElementById('eventType').value;
-
+  const visibility = document.getElementById('eventVisibility').value;
   const startDate = document.getElementById('eventDate').value;
   const endDate = document.getElementById('eventEndDate').value;
   const startTime = document.getElementById('startTime').value;
@@ -357,7 +365,8 @@
       description: description,
       event_type: eventType,
       start: startDateTime,
-      end: endDateTime
+      end: endDateTime,
+      visibility: visibility,
     })
   })
   .then(res => res.json())
