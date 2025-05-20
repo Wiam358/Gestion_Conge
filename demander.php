@@ -29,8 +29,8 @@ if (isset($_POST['datedepart']) && isset($_POST['dateretour'])) {
         elseif ($dateRetour <= $dateCourante) {
             $message = "Erreur : La date fin doit être dans le futur";
         }
-        elseif ($dateDepart >= $dateRetour) {
-            $message = "Erreur : La date début doit être inférieure à la date de fin";
+        elseif ($dateDepart > $dateRetour) {
+            $message = "Erreur : La date début doit être inférieure ou égale à la date de fin";
         }
         elseif ($joursDemandes > $total_conges_disponibles) {
             $message = "Erreur : Solde insuffisant (Demande: $joursDemandes jours | Disponible: $total_conges_disponibles jours)";
