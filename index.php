@@ -1,5 +1,45 @@
 <?php
 session_start();
+include_once('config.php');
+connexionBdd($bdd);
+verifySession();
+if(isset($_POST['newValue'])){
+try
+{
+$bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
+}catch (Exception $e)
+{die('Erreur : ' . $e->getMessage());}
+
+if(  isset($_POST['pass']) & isset($_POST['pass2']) & isset($_POST['login']) & isset($_POST['tel']) & isset($_POST['adresse']) & isset($_POST['email']) )
+{
+	if ($_POST['pass']==$_POST['pass2']) {
+		$pass_hache=crypt($_POST['pass'],"x5ncisx5");
+$req = $bdd->prepare('UPDATE  personnel set tel=:ptel,adresse=:padresse,login=:plogin,pass=:ppass,email=:pemail WHERE cin=\'' . $_SESSION['cin']. '\'');
+$req->execute(array(
+':ptel' => htmlspecialchars($_POST['tel']),
+':padresse' => ucfirst(strtolower(htmlspecialchars(trim($_POST['adresse'])))),
+':plogin' => htmlspecialchars(trim($_POST['login'])),
+':ppass' => $pass_hache,
+':pemail' => htmlspecialchars(trim($_POST['email']))
+));
+// Après une modification réussie
+$_SESSION['success_message'] = "Vos informations ont été modifiées avec succès.";
+header("Location: index.php"); // ou index.php si c’est ta page d’accueil
+exit();
+
+
+}
+else{
+	$_SESSION['error_message'] = "Échec de la modification. Veuillez réessayer.";
+header("Location: index.php");
+exit();
+
+} 
+}
+}
+if(isset($_SESSION['cin'])){
+$reponse=InfosPersonnel($_SESSION['cin']);
+}
 ?>
 <html>
 <head>
@@ -8,6 +48,7 @@ session_start();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
@@ -90,7 +131,6 @@ session_start();
             font-weight: 600;
             letter-spacing: 0.5px;
             transition: all 0.3s ease;
-            box-shadow:  �4px 15px rgba(46, 139, 87, 0.3);
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -428,7 +468,7 @@ session_start();
                             <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Modifier mon profil</h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form method="post" action="modifierMesInfos.php">
+                        <form method="post" action="index.php">
                             <div class="modal-body">
                                 <?php if(isset($message)): ?>
                                     <div class="alert alert-success"><?= $message ?></div>
@@ -507,5 +547,28 @@ session_start();
             this.classList.toggle('fa-eye-slash');
         });
     </script>
+    <?php if (isset($_SESSION['success_message'])): ?>
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Succès',
+        text: '<?= $_SESSION['success_message'] ?>',
+        confirmButtonColor: '#3085d6'
+    });
+</script>
+<?php unset($_SESSION['success_message']); endif; ?>
+
+<?php if (isset($_SESSION['error_message'])): ?>
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: '<?= $_SESSION['error_message'] ?>',
+        confirmButtonColor: '#d33'
+    });
+</script>
+<?php unset($_SESSION['error_message']); endif; ?>
+
+
 </body>
 </html>
