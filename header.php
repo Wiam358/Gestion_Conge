@@ -253,8 +253,7 @@
             <div class="profile-greeting">
                 <i class="bi bi-person-circle fs-3 text-success"></i>
                 <div>
-                    <h6 class="mb-0">Bonjour, <span class="text-success"><?= htmlspecialchars($_SESSION['prenom'] ?? '') ?></span></h6>
-                    <small class="text-muted"><?= htmlspecialchars($_SESSION['nom'] ?? '') ?></small>
+                    <h6 class="mb-0">Bonjour, <span class="text-success"><?= htmlspecialchars($_SESSION['prenom'] ?? '') ?> <?= htmlspecialchars($_SESSION['nom'] ?? '') ?></span></h6>
                 </div>
             </div>
             

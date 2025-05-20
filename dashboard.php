@@ -220,7 +220,7 @@
         <?php include_once 'header.php'; ?>
         <br>
         <div class="dashboard-container">
-            <h2 class="mb-4 fw-bold" style="color: var(--primary-color);">Tableau de Bord</h2>
+            <h2 class="mb-4 fw-bold" style="color: var(--primary-color);"><i class="bi bi-grid-fill"></i> Tableau de Bord</h2>
             
             <?php if ($role === 'SAL'): ?>
                 <!-- Dashboard Salarié -->

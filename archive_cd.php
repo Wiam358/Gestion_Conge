@@ -20,10 +20,10 @@ $annee = isset($_GET['annee']) ? $_GET['annee'] : '';
 $mois = isset($_GET['mois']) ? $_GET['mois'] : '';
 
 // Construire la requête de base, limitée au département du CD
-$query = "SELECT d.*, p.nom, p.prenom, p.depart 
+$query = "SELECT d.*, p.nom, p.prenom, p.depart, p.service
           FROM demande d
           JOIN personnel p ON d.CIN = p.CIN
-          WHERE d.Etat IN (1, -1, 2, -2)
+          WHERE d.Etat IN (2, -2)
           AND p.qualite NOT IN ('CD', 'DG', 'RH')
           AND p.depart = " . $bdd->quote($departement_cd);
 
@@ -69,7 +69,7 @@ $annees = $bdd->query($query_annees);
 body {
     margin-left: 250px;
     background-color: var(--bg-color);
-    transition: margin 0.3s ease;
+
 }
 
 .archive-card {
@@ -292,7 +292,7 @@ h3 {
                         <tr>
                             <th>ID</th>
                             <th>Personnel</th>
-                            <th>Département</th>
+                            <th>Service</th>
                             <th>Période</th>
                             <th>Type</th>
                             <th>Statut</th>
@@ -310,7 +310,7 @@ h3 {
                                 <strong><?= htmlspecialchars($donnee['nom']) ?> <?= htmlspecialchars($donnee['prenom']) ?></strong>
                                 <div class="small text-muted"><?= htmlspecialchars($donnee['CIN']) ?></div>
                             </td>
-                            <td><?= htmlspecialchars($donnee['depart']) ?></td>
+                            <td><?= htmlspecialchars($donnee['service']) ?></td>
                             <td>
                                 <?= date('d/m/Y', strtotime($donnee['DateDepart'])) ?>
                                 <div class="small">au <?= date('d/m/Y', strtotime($donnee['DateRetour'])) ?></div>

@@ -423,6 +423,9 @@ $reponse=InfosPersonnel($_SESSION['cin']);
                                         <span class="info-badge">
                                             <i class="bi bi-person-vcard"></i> <?= $_SESSION['cin'] ?>
                                         </span>
+                                        <span class="info-badge">
+                                            <i class="bi bi-calendar"></i> <?= $infos['conges_restants_annee_precedente']  + $infos['conges_annee_en_cours'] ?>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

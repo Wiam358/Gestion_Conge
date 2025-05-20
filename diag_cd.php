@@ -184,7 +184,7 @@ try {
 </head>
 <body>
     <div class="dashboard-container py-4">
-        <h2 class="mb-4 text-center"><i class="bi bi-people-fill"></i> Tableau de bord des congés - <?= htmlspecialchars($serviceCD) ?></h2>
+        <h2 class="mb-4 text-center"><i class="bi bi"></i> Tableau de bord des congés - <?= htmlspecialchars($serviceCD) ?></h2>
         
         <!-- Première ligne : Graphiques -->
         <div class="row">

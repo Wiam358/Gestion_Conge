@@ -15,44 +15,59 @@ if(isset($_POST['accepter'])) {
     EtatDemande($_POST['accepter'], 1);
     $cin1 = CinFromID($_POST['accepter']);
     $emailPer = InfosPersonnel($cin1);
-    $subject = "État de la demande de congé";
-    $message = "Votre demande a été acceptée.\nConsulter : http://localhost/Test2_conge/MesDemandes.php";
-    EnvoyerEmail($emailPer['email'], $subject, $message);
+    if (is_array($emailPer) && isset($emailPer['email'])) {
+        $subject = "État de la demande de congé";
+        $message = "Votre demande a été acceptée.\nConsulter : http://localhost/Test2_conge/MesDemandes.php";
+        EnvoyerEmail($emailPer['email'], $subject, $message);
+    } else {
+        // Log or handle the error (e.g., invalid CIN or no email found)
+        error_log("Erreur: Aucun email trouvé pour CIN $cin1 lors de l'acceptation de la demande ID {$_POST['accepter']}");
+    }
 }
 
 if(isset($_POST['refuser'])) {
     EtatDemande($_POST['refuser'], -1);
     $cin1 = CinFromID($_POST['refuser']);
     $emailPer = InfosPersonnel($cin1);
-    $subject = "État de la demande de congé";
-    $message = "Votre demande a été refusée.\nConsulter : http://localhost/Test2_conge/MesDemandes.php";
-    EnvoyerEmail($emailPer['email'], $subject, $message);
+    if (is_array($emailPer) && isset($emailPer['email'])) {
+        $subject = "État de la demande de congé";
+        $message = "Votre demande a été refusée.\nConsulter : http://localhost/Test2_conge/MesDemandes.php";
+        EnvoyerEmail($emailPer['email'], $subject, $message);
+    } else {
+        // Log or handle the error
+        error_log("Erreur: Aucun email trouvé pour CIN $cin1 lors du refus de la demande ID {$_POST['refuser']}");
+    }
 }
 
 if(isset($_POST['pasEncore'])) {
     EtatDemande($_POST['pasEncore'], 0);
-    $cin1 = CinFromID($_POST['pasEncore']);
+    $cin1 = CinFromID($_POST['pasEncore']); // Corrigé: 'pasEnCore' -> 'pasEncore'
     $emailPer = InfosPersonnel($cin1);
-    $subject = "État de la demande de congé";
-    $message = "Votre demande est en cours de traitement.\nConsulter : http://localhost/Test2_conge/MesDemandes.php";
-    EnvoyerEmail($emailPer['email'], $subject, $message);
+    if (is_array($emailPer) && isset($emailPer['email'])) {
+        $subject = "État de la demande de congé";
+        $message = "Votre demande est en cours de traitement.\nConsulter : http://localhost/Test2_conge/MesDemandes.php";
+        EnvoyerEmail($emailPer['email'], $subject, $message);
+    } else {
+        // Log or handle the error
+        error_log("Erreur: Aucun email trouvé pour CIN $cin1 lors de la mise en attente de la demande ID {$_POST['pasEncore']}");
+    }
 }
 
 // Récupérer le département du chef connecté
-$cin = $_SESSION['cin']; // CIN du chef de département connecté
+$cin = $_SESSION['cin'];
 $infosChef = InfosPersonnel($cin);
 $departementChef = $infosChef['depart'];
-$cin_cd= $infosChef['cin'];
+$cin_cd = $infosChef['cin'];
 
 // Récupération des demandes selon le filtre
 if(isset($_GET['enAttente'])) {
-    $reponse = DemandesEnAttenteChefDepartement($departementChef,$cin_cd);
+    $reponse = DemandesEnAttenteChefDepartement($departementChef, $cin_cd);
 } elseif(isset($_GET['acceptee'])) {
     $reponse = DemandesAccepteeChefDepartement($departementChef);
 } elseif(isset($_GET['refusee'])) {
     $reponse = DemandesRefuseeChefDepartement($departementChef);
 } else {
-    $reponse = LesDemandesChefDepartement($departementChef,$cin_cd);
+    $reponse = LesDemandesChefDepartement($departementChef, $cin_cd);
 }
 ?>
 
@@ -62,10 +77,13 @@ if(isset($_GET['enAttente'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des demandes | CCISCS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="icon" type="image/png" href="photos/cciscs.png" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Ajout de SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         :root {
             --primary-color: #3CB371;
@@ -407,32 +425,32 @@ if(isset($_GET['enAttente'])) {
                             <td><span class="state-badge <?= $EtatClass ?>"><?= $EtatText ?></span></td>
                             <td>
                                 <div class="d-flex justify-content-between gap-2">
-                                <?php if($choixE): ?>
-            <form method="post" action="<?= htmlspecialchars($lien) ?>" class="flex-fill">
-                <input type="hidden" name="pasEncore" value="<?= htmlspecialchars($donnees['ID']) ?>">
-                <button type="submit" class="action-btn btn btn-warning btn-sm w-100" onclick="return confirmAction('mettre en attente')">
-                    <i class="bi bi-hourglass"></i> Attente
-                </button>
-            </form>
-        <?php endif; ?>
-        
-        <?php if($choixA): ?>
-            <form method="post" action="<?= htmlspecialchars($lien) ?>" class="flex-fill">
-                <input type="hidden" name="accepter" value="<?= htmlspecialchars($donnees['ID']) ?>">
-                <button type="submit" class="action-btn btn btn-success btn-sm w-100" onclick="return confirmAction('accepter')">
-                    <i class="bi bi-check-circle"></i> Accepter
-                </button>
-            </form>
-        <?php endif; ?>
-        
-        <?php if($choixR): ?>
-            <form method="post" action="<?= htmlspecialchars($lien) ?>" class="flex-fill">
-                <input type="hidden" name="refuser" value="<?= htmlspecialchars($donnees['ID']) ?>">
-                <button type="submit" class="action-btn btn btn-danger btn-sm w-100" onclick="return confirmAction('refuser')">
-                    <i class="bi bi-x-circle"></i> Refuser
-                </button>
-            </form>
-        <?php endif; ?>
+                                    <?php if($choixE): ?>
+                                        <form method="post" action="<?= htmlspecialchars($lien) ?>" class="flex-fill form-attente">
+                                            <input type="hidden" name="pasEncore" value="<?= htmlspecialchars($donnees['ID']) ?>">
+                                            <button type="button" class="action-btn btn btn-warning btn-sm w-100" onclick="confirmAction('mettre en attente', this.form)">
+                                                <i class="bi bi-hourglass"></i> Attente
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                    
+                                    <?php if($choixA): ?>
+                                        <form method="post" action="<?= htmlspecialchars($lien) ?>" class="flex-fill form-accepter">
+                                            <input type="hidden" name="accepter" value="<?= htmlspecialchars($donnees['ID']) ?>">
+                                            <button type="button" class="action-btn btn btn-success btn-sm w-100" onclick="confirmAction('accepter', this.form)">
+                                                <i class="bi bi-check-circle"></i> Accepter
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                    
+                                    <?php if($choixR): ?>
+                                        <form method="post" action="<?= htmlspecialchars($lien) ?>" class="flex-fill form-refuser">
+                                            <input type="hidden" name="refuser" value="<?= htmlspecialchars($donnees['ID']) ?>">
+                                            <button type="button" class="action-btn btn btn-danger btn-sm w-100" onclick="confirmAction('refuser', this.form)">
+                                                <i class="bi bi-x-circle"></i> Refuser
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -443,14 +461,29 @@ if(isset($_GET['enAttente'])) {
         </div>
     </div>
 
+    <!-- Ajout de SweetAlert2 JS -->
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function confirmAction(action) {
-            return confirm(`Êtes-vous sûr de vouloir ${action} cette demande ?`);
+        function confirmAction(action, form) {
+            Swal.fire({
+                title: `Confirmation`,
+                text: `Êtes-vous sûr de vouloir ${action} cette demande ?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28A745',
+                cancelButtonColor: '#DC3545',
+                confirmButtonText: 'Oui, confirmer',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // Soumettre le formulaire si confirmé
+                }
+            });
         }
     </script>
     
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
     <?php $reponse->closeCursor(); ?>
 </body>
 </html>
