@@ -211,6 +211,15 @@
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
+.modal-footer .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.modal-footer .btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+}
   </style>
 </head>
 <body>
@@ -284,6 +293,12 @@
         <div class="modal-footer">
           <button type="submit" class="btn btn-primary">Ajouter</button>
         </div>
+        <div class="modal-footer">
+            <button type="button" id="deleteBtn" class="btn btn-danger me-auto" style="display:none;">Supprimer</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn">Ajouter</button>
+            <button type="button" id="updateBtn" class="btn btn-warning" style="display:none;">Modifier</button>
+        </div>
       </div>
     </form>
   </div>
@@ -301,7 +316,7 @@
         initialView: 'dayGridMonth',
         locale: 'fr',
         selectable: true,
-        events: 'load-events.php', // Charger les événements depuis la BDD
+        
         googleCalendarApiKey: 'AIzaSyAtqhp1afQG7EiPT_U5DeBFfcqlW11tcM4',
 
         eventSources: [
@@ -331,6 +346,113 @@
       });
 
       calendar.render();
+
+//modfier et supprimer
+      let currentEventId = null;
+
+// Gestion du clic sur un événement
+calendar.setOption('eventClick', function(info) {
+    currentEventId = info.event.id;
+    document.getElementById('eventTitle').value = info.event.title;
+    document.getElementById('eventDescription').value = info.event.extendedProps.description || '';
+    document.getElementById('eventType').value = info.event.extendedProps.event_type || 'autre';
+    document.getElementById('eventVisibility').value = info.event.extendedProps.visibility || 'public';
+    
+    // Convertir les dates au bon format
+    const startDate = new Date(info.event.start);
+    const endDate = info.event.end ? new Date(info.event.end) : new Date(info.event.start);
+    
+    document.getElementById('eventDate').value = startDate.toISOString().split('T')[0];
+    document.getElementById('eventEndDate').value = endDate.toISOString().split('T')[0];
+    document.getElementById('startTime').value = startDate.toTimeString().substring(0, 5);
+    document.getElementById('endTime').value = endDate.toTimeString().substring(0, 5);
+    
+    // Afficher les bons boutons
+    document.getElementById('saveBtn').style.display = 'none';
+    document.getElementById('updateBtn').style.display = 'block';
+    document.getElementById('deleteBtn').style.display = 'block';
+    
+    new bootstrap.Modal(document.getElementById('eventModal')).show();
+});
+
+// Gestion de la modification
+document.getElementById('updateBtn').addEventListener('click', function() {
+    const title = document.getElementById('eventTitle').value;
+    const description = document.getElementById('eventDescription').value;
+    const eventType = document.getElementById('eventType').value;
+    const visibility = document.getElementById('eventVisibility').value;
+    const startDate = document.getElementById('eventDate').value;
+    const endDate = document.getElementById('eventEndDate').value;
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+
+    const startDateTime = `${startDate}T${startTime}`;
+    const endDateTime = `${endDate}T${endTime}`;
+
+    fetch('update-event.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            id: currentEventId,
+            title: title,
+            description: description,
+            event_type: eventType,
+            start: startDateTime,
+            end: endDateTime,
+            visibility: visibility,
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire('Succès', 'Événement modifié avec succès!', 'success');
+            calendar.refetchEvents();
+            bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+        } else {
+            Swal.fire('Erreur', data.error || "Erreur lors de la modification", 'error');
+        }
+    });
+});
+
+// Gestion de la suppression
+document.getElementById('deleteBtn').addEventListener('click', function() {
+    Swal.fire({
+        title: 'Confirmer la suppression',
+        text: "Êtes-vous sûr de vouloir supprimer cet événement?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Oui, supprimer!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('delete-event.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: currentEventId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Supprimé!', 'L\'événement a été supprimé.', 'success');
+                    calendar.refetchEvents();
+                    bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+                } else {
+                    Swal.fire('Erreur', data.error || "Erreur lors de la suppression", 'error');
+                }
+            });
+        }
+    });
+});
+
+// Réinitialiser la modal quand elle se ferme
+document.getElementById('eventModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('eventForm').reset();
+    document.getElementById('saveBtn').style.display = 'block';
+    document.getElementById('updateBtn').style.display = 'none';
+    document.getElementById('deleteBtn').style.display = 'none';
+    currentEventId = null;
+});
 
       document.getElementById('eventForm').addEventListener('submit', function (e) {
   e.preventDefault();
