@@ -309,6 +309,7 @@ function LesDemandesChefDepartement($departement, $cin_cd) {
                          JOIN personnel p ON d.CIN = p.cin
                          WHERE p.depart = ? 
                          AND p.qualite NOT IN ('CD', 'RH', 'DG')
+                         AND d.DateDepart > NOW()
                          AND d.CIN != ?
                          ORDER BY d.DateDemande DESC");
     $req->execute([$departement, $cin_cd]);
@@ -334,6 +335,7 @@ function DemandesAccepteeChefDepartement($departement) {
     $req = $bdd->prepare("
         SELECT * FROM demande 
         WHERE Etat = 1 
+        AND DateDepart > NOW()
         AND CIN IN (
             SELECT CIN FROM personnel WHERE depart = ?
         )
@@ -347,7 +349,8 @@ function DemandesRefuseeChefDepartement($departement) {
     connexionBdd($bdd);
     $req = $bdd->prepare("
         SELECT * FROM demande 
-        WHERE Etat = -1 
+        WHERE Etat = -1
+        AND DateDepart > NOW() 
         AND CIN IN (
             SELECT CIN FROM personnel WHERE depart = ?
         )
@@ -378,6 +381,7 @@ function DemandesRefuseesParDG() {
                          FROM demande d 
                          JOIN personnel p ON d.CIN = p.cin 
                          WHERE d.Etat = -2 
+                         AND d.DateDepart > NOW()
                          ORDER BY d.ID DESC');
     $req->execute();
     return $req;
@@ -389,8 +393,8 @@ function DemandesPourValidationDG() {
     $req = $bdd->prepare('SELECT d.*, p.qualite 
                           FROM demande d 
                           JOIN personnel p ON d.CIN = p.cin 
-                          WHERE d.Etat IN (2, -2, 1) 
-                                OR (d.Etat = 0 AND p.qualite IN ("CD", "DG", "RH"))
+                          WHERE d.Etat IN (2, -2, 1) AND d.DateDepart > NOW()
+                                OR (d.Etat = 0 AND p.qualite IN ("CD", "DG", "RH") AND d.DateDepart > NOW())
                           ORDER BY d.ID DESC');
     $req->execute();
     return $req;
@@ -704,6 +708,7 @@ function DemandesAccepteesParDG() {
                          FROM demande d 
                          JOIN personnel p ON d.CIN = p.cin 
                          WHERE d.Etat = 2
+                         AND d.DateDepart > NOW()
                          ORDER BY d.ID DESC');
     $req->execute();
     return $req;

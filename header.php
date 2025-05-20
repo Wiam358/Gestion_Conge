@@ -218,12 +218,13 @@
                 if ($_SESSION['qualite'] === 'DG') {
                     echo '<li class="nav-item"><a class="nav-link" href="liste_dem_dg.php"><i class="bi bi-list"></i> Liste des demandes</a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="liste_perso_dg.php"><i class="bi bi-people-fill"></i> Les personnels </a></li>';
-                                        echo '<li class="nav-item"><a class="nav-link" href="archive_dg.php"><i class="bi bi-archive-fill"></i> Archive </a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="archive_dg.php"><i class="bi bi-archive-fill"></i> Archive </a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="diag_dg.php"><i class="bi bi-bar-chart"></i> Visualisation </a></li>';
                 }
                 if ($_SESSION['qualite'] === 'CD') {
                     echo '<li class="nav-item"><a class="nav-link" href="listeDemandes.php"><i class="bi bi-list"></i> Liste des demandes</a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="liste_equipe_cd.php"><i class="bi bi-people-fill"></i> Mon équipe </a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="archive_cd.php"><i class="bi bi-archive-fill"></i> Archive </a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="diag_cd.php"><i class="bi bi-bar-chart"></i> Visualisation </a></li>';
 
                 }
