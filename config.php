@@ -150,7 +150,7 @@ if(!isset($_SESSION['cin']) or !isset($_SESSION['login']))
 
 
 
-function demander($cin, $dateRetour, $dateDepart, $type) {
+function demander($cin, $dateRetour, $dateDepart, $type, $description) {
     connexionBdd($bdd);
 
     // 1. Récupérer les soldes séparés
@@ -187,14 +187,15 @@ function demander($cin, $dateRetour, $dateDepart, $type) {
     $dateNow = date('Y-m-d');
     $etat = 0;
 
-    $req = $bdd->prepare('INSERT INTO demande(CIN, DateDepart, DateRetour, DateDemande, Etat, type) VALUES(:CIN, :DateDepart, :DateRetour, :DateDemande, :Etat, :type)');
+    $req = $bdd->prepare('INSERT INTO demande(CIN, DateDepart, DateRetour, DateDemande, Etat, type, description) VALUES(:CIN, :DateDepart, :DateRetour, :DateDemande, :Etat, :type, :description)');
     $req->execute(array(
         ':CIN' => $cin,
         ':DateDepart' => $dateDepart,
         ':DateRetour' => $dateRetour,
         ':DateDemande' => $dateNow,
         ':Etat' => $etat,
-        ':type' => $type
+        ':type' => $type,
+        ':description' =>$description
     ));
 
     // 5. Mise à jour des congés

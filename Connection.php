@@ -323,7 +323,7 @@ if(isset($_POST['pass']) && isset($_POST['login'])) {
 </div><hr>
 <fieldset><legend><img src="cadenas.png"></legend>
 <form method="post" action="Connection.php">
-	<input type="text" name="login" placeholder="Nom d'utilisateur" required /><br><br>
+	<input type="text" name="login" placeholder="Nom d'utilisateur" autocomplete="off" required /><br><br>
 	<input type="password" name="pass" placeholder="Mot de passe "  required /><br><br>
 	<input type="submit" Value="Connexion" />
 </form>
