@@ -324,7 +324,7 @@ if(isset($_GET['enAttente'])) {
                 Validation des demandes d'équipe
             </h1>
             <p class="mb-0 mt-2">
-                <i class="bi bi-info-circle"></i> Interface réservée au Chef de Département.
+                <i class="bi bi-info-circle"></i> Interface réservée au Chef de Département : <?= strtoupper(htmlspecialchars($_SESSION['depart'])) ?>
             </p>
         </div>
         

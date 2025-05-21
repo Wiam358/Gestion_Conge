@@ -80,6 +80,7 @@ $membresEquipe = $req->fetchAll();
         }
         h2 {
             color: seagreen;
+            font-weight: 700;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -98,7 +99,7 @@ $membresEquipe = $req->fetchAll();
 <body>
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="bi bi-people-fill"></i> Mon Équipe - <?= htmlspecialchars($_SESSION['depart']) ?></h2>
+            <h2><i class="bi bi-people-fill"></i> MON EQUIPE - <?= strtoupper(htmlspecialchars($_SESSION['depart'])) ?></h2>
             <span class="badge bg-primary"><?= count($membresEquipe) ?> membres</span>
         </div>
 

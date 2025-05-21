@@ -106,6 +106,8 @@ $demandes = $bdd->query("
         
         body {
             background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
             margin-left: 250px;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
@@ -114,9 +116,8 @@ $demandes = $bdd->query("
             background-color: white;
             border-radius: 10px;
             box-shadow: var(--card-shadow);
-            padding: 2rem;
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+            padding: 1.5rem;
+            margin: 1rem;
         }
         
         .page-header {
@@ -126,21 +127,26 @@ $demandes = $bdd->query("
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
+            font-size: 1.5rem;
         }
         
         .page-header i {
-            margin-right: 15px;
-            font-size: 1.8rem;
+            margin-right: 10px;
+            font-size: 1.6rem;
             color: var(--primary-color);
         }
         
         .table-responsive {
             border-radius: 8px;
-            overflow: hidden;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         .table {
+            min-width: 700px;
+            width: 100%;
             margin-bottom: 0;
+            border-collapse: collapse;
         }
         
         .table thead {
@@ -149,13 +155,16 @@ $demandes = $bdd->query("
         }
         
         .table th {
-            padding: 1rem;
+            padding: 0.75rem;
             font-weight: 500;
+            text-align: center;
         }
         
         .table td {
-            padding: 0.75rem 1rem;
+            padding: 0.5rem;
             vertical-align: middle;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
         
         .table-striped tbody tr:nth-of-type(odd) {
@@ -178,10 +187,17 @@ $demandes = $bdd->query("
             transition: all 0.3s;
         }
         
-        .btn-sm {
-            padding: 0.35rem 0.75rem;
+        .action-btn {
+            min-width: 100px;
+            padding: 0.4rem 0.75rem;
             font-size: 0.85rem;
             border-radius: 4px;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
         }
         
         .btn-success:hover {
@@ -210,26 +226,28 @@ $demandes = $bdd->query("
         
         .empty-state {
             text-align: center;
-            padding: 3rem;
+            padding: 2rem;
             background-color: white;
             border-radius: 8px;
             box-shadow: var(--card-shadow);
         }
         
         .empty-state i {
-            font-size: 3rem;
+            font-size: 2.5rem;
             color: #bdc3c7;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
         
         .empty-state h3 {
             color: var(--secondary-color);
             margin-bottom: 0.5rem;
+            font-size: 1.25rem;
         }
         
         .empty-state p {
             color: #7f8c8d;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
         }
         
         .period-cell {
@@ -237,16 +255,89 @@ $demandes = $bdd->query("
             color: var(--secondary-color);
         }
         
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+            }
+            
+            .main-container {
+                margin: 0.5rem;
+                padding: 1rem;
+                width: 740px;
+            }
+            
+            .page-header {
+                font-size: 1.25rem;
+            }
+            
+            .page-header i {
+                font-size: 1.4rem;
+            }
+        }
+        
         @media (max-width: 768px) {
-            .btn-sm {
-                display: block;
-                width: 100%;
+            .table th, .table td {
+                padding: 0.4rem;
+                font-size: 0.8rem;
+            }
+            
+            .action-btn {
+                min-width: 100%;
                 margin-bottom: 0.5rem;
+                font-size: 0.8rem;
+                padding: 0.35rem;
             }
             
             .action-buttons {
                 display: flex;
                 flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .mobile-hide {
+                display: none;
+            }
+            
+            .period-cell i {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .page-header {
+                font-size: 1.1rem;
+            }
+            
+            .page-header i {
+                font-size: 1.2rem;
+            }
+            
+            .table th, .table td {
+                font-size: 0.75rem;
+            }
+            
+            .badge {
+                font-size: 0.7rem;
+                padding: 0.3em 0.5em;
+            }
+            
+            .empty-state i {
+                font-size: 2rem;
+            }
+            
+            .empty-state h3 {
+                font-size: 1.1rem;
+            }
+            
+            .empty-state p {
+                font-size: 0.85rem;
+            }
+            
+            .action-btn {
+                font-size: 0.75rem;
+                padding: 0.3rem;
             }
         }
     </style>
@@ -254,7 +345,7 @@ $demandes = $bdd->query("
 <body>
     <?php include_once('header.php'); ?>
     
-    <div class="container py-4">
+    <div class="container py-3">
         <div class="main-container">
             <h2 class="page-header">
                 <i class="bi bi-x-circle-fill"></i> Demandes d'annulation en attente
@@ -273,10 +364,10 @@ $demandes = $bdd->query("
                             <tr>
                                 <th>ID</th>
                                 <th>Employé</th>
-                                <th>Type</th>
+                                <th class="mobile-hide">Type</th>
                                 <th>Période</th>
                                 <th>Jours</th>
-                                <th>Demandé le</th>
+                                <th class="mobile-hide">Demandé le</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -288,26 +379,26 @@ $demandes = $bdd->query("
                                 <tr>
                                     <td><?= $demande['demande_id'] ?></td>
                                     <td><?= htmlspecialchars($demande['prenom'].' '.$demande['nom']) ?></td>
-                                    <td><?= htmlspecialchars($demande['type']) ?></td>
+                                    <td class="mobile-hide"><?= htmlspecialchars($demande['type']) ?></td>
                                     <td class="period-cell">
                                         <?= date('d/m/y', strtotime($demande['DateDepart'])) ?> 
                                         <i class="bi bi-arrow-right"></i>
                                         <?= date('d/m/y', strtotime($demande['DateRetour'])) ?>
                                     </td>
                                     <td><span class="badge bg-primary rounded-pill"><?= $jours ?></span></td>
-                                    <td><?= date('d/m/y H:i', strtotime($demande['date_demande'])) ?></td>
+                                    <td class="mobile-hide"><?= date('d/m/y H:i', strtotime($demande['date_demande'])) ?></td>
                                     <td class="action-buttons">
                                         <form method="post" class="d-inline accept-form">
                                             <input type="hidden" name="id" value="<?= $demande['id'] ?>">
                                             <input type="hidden" name="action" value="accepter">
-                                            <button type="submit" class="btn btn-success btn-sm me-2 btn-accept">
+                                            <button type="submit" class="btn btn-success action-btn btn-accept">
                                                 <i class="bi bi-check-circle"></i> Accepter
                                             </button>
                                         </form>
                                         <form method="post" class="d-inline refuse-form">
                                             <input type="hidden" name="id" value="<?= $demande['id'] ?>">
                                             <input type="hidden" name="action" value="refuser">
-                                            <button type="submit" class="btn btn-danger btn-sm btn-refuse">
+                                            <button type="submit" class="btn btn-danger action-btn btn-refuse">
                                                 <i class="bi bi-x-circle"></i> Refuser
                                             </button>
                                         </form>
