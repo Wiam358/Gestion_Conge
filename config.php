@@ -775,5 +775,14 @@ function InfosPersonnelFromDivAndCIN($depart, $cin) {
     return $req;
 }
 
+
+function verifyDG() {
+    if ($_SESSION['qualite'] !== 'DG') { // Adaptez selon votre système de rôles
+        header('Location: index.php');
+        exit();
+    }
+}
+
+
 ?>
 

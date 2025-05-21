@@ -4,7 +4,37 @@ session_start();
 include_once('config.php');
 verifySession();
 
+// Gestion de la demande d'annulation après validation
+if (isset($_POST['action']) && $_POST['action'] == 'demander_annulation' && isset($_POST['id'])) {
+    $id = $_POST['id'];
+    connexionBdd($bdd);
 
+    // Vérifier que la demande appartient à l'utilisateur et est validée (état=2)
+    $stmt = $bdd->prepare("SELECT * FROM demande WHERE ID = ? AND CIN = ? AND Etat = 2");
+    $stmt->execute([$id, $_SESSION['cin']]);
+    $demande = $stmt->fetch();
+
+    if ($demande && strtotime($demande['DateDepart']) > time()) {
+        // Créer une demande d'annulation dans une nouvelle table ou mettre à jour l'état
+        // Ici, je propose de créer une demande spéciale dans une table 'annulation_demandes'
+        try {
+            $insert = $bdd->prepare("INSERT INTO annulation_demandes (demande_id, cin, date_demande, statut) 
+                                   VALUES (?, ?, NOW(), 'en_attente')");
+            if ($insert->execute([$id, $_SESSION['cin']])) {
+                $_SESSION['message'] = "Demande d'annulation envoyée au DG";
+            } else {
+                $_SESSION['error'] = "Erreur lors de la demande d'annulation";
+            }
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Erreur technique: " . $e->getMessage();
+        }
+    } else {
+        $_SESSION['error'] = "Demande non trouvée, non validée ou déjà commencée";
+    }
+
+    header('Location: MesDemandes.php');
+    exit();
+}
 
 // Gestion de la suppression
 if (isset($_POST['action']) && $_POST['action'] == 'supprimer' && isset($_POST['id'])) {
@@ -363,7 +393,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         background-color: rgba(220, 53, 69, 0.2);
         color: #721C24;
     }
+    .btn-warning {
+    background-color: #ffc107;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    white-space: nowrap;
+}
 
+.btn-warning:hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(222, 170, 12, 0.4);
+}
     </style>
 </head>
 <body>
@@ -502,14 +548,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                     $days = dateDiff($demande['DateRetour'], $demande['DateDepart']) + 1;
                                     echo '<tr>
-                                            <td>'.$demande['ID'].'</td>
-                                            <td class="mobile-hide">'.$demande['type'].'</td>
-                                            <td class="mobile-hide">'.$demande['DateDemande'].'</td>
-                                            <td>'.date('d/m/y', strtotime($demande['DateDepart'])).'</td>
-                                            <td>'.date('d/m/y', strtotime($demande['DateRetour'])).'</td>
-                                            <td>'.$days.'</td>
-                                            <td><span class="state-badge '.$EtatClass.'">'.$EtatText.'</span></td>
-                                          </tr>';
+        <td>'.$demande['ID'].'</td>
+        <td class="mobile-hide">'.$demande['type'].'</td>
+        <td class="mobile-hide">'.$demande['DateDemande'].'</td>
+        <td>'.date('d/m/y', strtotime($demande['DateDepart'])).'</td>
+        <td>'.date('d/m/y', strtotime($demande['DateRetour'])).'</td>
+        <td>'.$days.'</td>
+        <td>
+            <span class="state-badge '.$EtatClass.'">'.$EtatText.'</span>';
+
+// Ajouter le bouton d'annulation si le congé est validé (état=2) et pas encore commencé
+if ($Etat == 2 && strtotime($demande['DateDepart']) > time()) {
+    // Vérifier si une demande d'annulation n'existe pas déjà
+    $checkAnnulation = $bdd->prepare("SELECT id FROM annulation_demandes 
+                                    WHERE demande_id = ? AND statut = 'en_attente'");
+    $checkAnnulation->execute([$demande['ID']]);
+    
+    if ($checkAnnulation->rowCount() == 0) {
+        echo '<form method="post" action="MesDemandes.php" class="d-inline ms-2">
+                <input type="hidden" name="action" value="demander_annulation">
+                <input type="hidden" name="id" value="'.$demande['ID'].'">
+                <button type="submit" class="btn-action btn-sm btn-warning" 
+                        onclick="return confirm(\'Voulez-vous vraiment demander l\\\'annulation de ce congé validé ?\')">
+                    <i class="bi bi-x-circle"></i> <span class="mobile-hide">Annuler</span>
+                </button>
+              </form>';
+    } else {
+        echo '<span class="badge bg-info text-dark ms-2"><i class="bi bi-hourglass"></i> En attente</span>';
+    }
+}
+
+echo '</td>
+      </tr>';
                                 }
                                 
                                 if($reqHistory->rowCount() == 0) {
