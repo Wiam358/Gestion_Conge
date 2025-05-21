@@ -16,12 +16,11 @@ if (isset($_POST['action']) && $_POST['action'] == 'demander_annulation' && isse
 
     if ($demande && strtotime($demande['DateDepart']) > time()) {
         // Créer une demande d'annulation dans une nouvelle table ou mettre à jour l'état
-        // Ici, je propose de créer une demande spéciale dans une table 'annulation_demandes'
         try {
             $insert = $bdd->prepare("INSERT INTO annulation_demandes (demande_id, cin, date_demande, statut) 
                                    VALUES (?, ?, NOW(), 'en_attente')");
             if ($insert->execute([$id, $_SESSION['cin']])) {
-                $_SESSION['message'] = "Demande d'annulation envoyée au DG";
+                $_SESSION['message'] = "Demande annulation envoyée au DG";
             } else {
                 $_SESSION['error'] = "Erreur lors de la demande d'annulation";
             }
@@ -87,8 +86,8 @@ if (isset($_POST['action']) && $_POST['action'] == 'supprimer' && isset($_POST['
     exit();
 }
 
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Gestion de la modification
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
     $id = $_POST['id'];
     $type = $_POST['type'];
     $datedepart = $_POST['datedepart'];
@@ -130,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 6. Vérifier que le nouveau solde est suffisant
         if (($precedent + $actuel) < $nouveauDiff) {
             $_SESSION['error'] = "Durée modifiée dépasse le solde disponible.";
-            header('Location: page_demandes.php'); // ou ta page
+            header('Location: MesDemandes.php');
             exit;
         }
 
@@ -160,7 +159,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['error'] = "Demande non trouvée ou non modifiable.";
     }
 
-    
     header('Location: MesDemandes.php');
     exit();
 }
@@ -175,241 +173,242 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="icon" type="image/png" href="photos/cciscs.png" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style type="text/css">
-    :root {
-        --seagreen-dark: #2E8B57;
-        --seagreen-primary: #3CB371;
-        --seagreen-light: #8FBC8F;
-        --seagreen-lighter: #98FB98;
-        --seagreen-bg: #F0FFF0;
-    }
+        :root {
+            --seagreen-dark: #2E8B57;
+            --seagreen-primary: #3CB371;
+            --seagreen-light: #8FBC8F;
+            --seagreen-lighter: #98FB98;
+            --seagreen-bg: #F0FFF0;
+        }
 
-    body {
-        background-color: var(--seagreen-bg);
-        margin: 0;
-        padding: 0;
-        min-height: 100vh;
-        flex-direction: column;
-        margin-left: 250px;
-    }
-
-    .nav-tabs {
-        border-bottom: 2px solid var(--seagreen-light);
-    }
-
-    .nav-tabs .nav-link {
-        color: var(--seagreen-dark);
-        border: none;
-        padding: 12px 20px;
-        font-weight: 600;
-    }
-
-    .nav-tabs .nav-link.active {
-        color: var(--seagreen-primary);
-        background-color: transparent;
-        border-bottom: 3px solid var(--seagreen-primary);
-    }
-
-    .nav-tabs .nav-link:hover:not(.active) {
-        border-bottom: 3px solid var(--seagreen-light);
-    }
-
-    .tab-content {
-        background-color: white;
-        border-radius: 0 0 15px 15px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin-bottom: 15px;
-    }
-
-    /* Table responsive styles */
-    .responsive-table-container {
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    table {
-        min-width: 600px;
-        width: 100%;
-        border-collapse: collapse;
-        margin: 1rem 0;
-    }
-
-    th, td {
-        padding: 12px;
-        text-align: center;
-        border: 1px solid var(--seagreen-light);
-    }
-
-    th {
-        background-color: var(--seagreen-primary);
-        color: white;
-        position: sticky;
-        top: 0;
-    }
-
-    tr:nth-child(even) {
-        background-color: rgba(240, 255, 240, 0.5);
-    }
-
-    tr:hover {
-        background-color: var(--seagreen-lighter);
-    }
-
-    .btn-primary {
-        background-color:rgb(241, 169, 14);
-        border: none;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 1s ease;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-    .btn-danger {
-        background-color:rgb(244, 4, 4);
-        border: none;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .btn-danger:hover {
-        background-color: rgb(144, 3, 3);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(111, 7, 7, 0.88);
-    }
-
-    .btn-primary:hover {
-        background-color: rgb(180, 125, 7);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(130, 80, 4, 0.88);
-    }
-
-    .status {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .status-pending {
-        background-color: #FFF3CD;
-        color: #856404;
-    }
-
-    .status-approved {
-        background-color: #D4EDDA;
-        color: #155724;
-    }
-
-    .status-rejected {
-        background-color: #F8D7DA;
-        color: #721C24;
-    }
-
-    /* Responsive Styles */
-    @media (max-width: 992px) {
         body {
-            margin-left: 0;
-        }
-        
-        .responsive-table-container {
+            background-color: var(--seagreen-bg);
+            margin: 0;
             padding: 0;
+            min-height: 100vh;
+            flex-direction: column;
+            margin-left: 250px;
         }
-    }
 
-    @media (max-width: 768px) {
-        .nav-tabs .nav-link {
-            padding: 10px;
-            font-size: 0.9rem;
+        .nav-tabs {
+            border-bottom: 2px solid var(--seagreen-light);
         }
-        
+
+        .nav-tabs .nav-link {
+            color: var(--seagreen-dark);
+            border: none;
+            padding: 12px 20px;
+            font-weight: 600;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--seagreen-primary);
+            background-color: transparent;
+            border-bottom: 3px solid var(--seagreen-primary);
+        }
+
+        .nav-tabs .nav-link:hover:not(.active) {
+            border-bottom: 3px solid var(--seagreen-light);
+        }
+
+        .tab-content {
+            background-color: white;
+            border-radius: 0 0 15px 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .responsive-table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            min-width: 600px;
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
         th, td {
-            padding: 8px 6px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--seagreen-light);
+        }
+
+        th {
+            background-color: var(--seagreen-primary);
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(240, 255, 240, 0.5);
+        }
+
+        tr:hover {
+            background-color: var(--seagreen-lighter);
+        }
+
+        .btn-primary {
+            background-color: rgb(241, 169, 14);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .btn-danger {
+            background-color: rgb(244, 4, 4);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .btn-danger:hover {
+            background-color: rgb(144, 3, 3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(111, 7, 7, 0.88);
+        }
+
+        .btn-primary:hover {
+            background-color: rgb(180, 125, 7);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(130, 80, 4, 0.88);
+        }
+
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
             font-size: 0.9rem;
         }
+
+        .status-pending {
+            background-color: #FFF3CD;
+            color: #856404;
+        }
+
+        .status-approved {
+            background-color: #D4EDDA;
+            color: #155724;
+        }
+
+        .status-rejected {
+            background-color: #F8D7DA;
+            color: #721C24;
+        }
+
+        @media (max-width: 992px) {
+            body {
+                margin-left: 0;
+            }
+            
+            .responsive-table-container {
+                padding: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs .nav-link {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+            }
+            
+            .btn-action {
+                padding: 6px 8px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .nav-tabs .nav-link {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .mobile-hide {
+                display: none;
+            }
+            
+            .status {
+                font-size: 0.8rem;
+                padding: 4px 8px;
+            }
+        }
+
+        .demands-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(60, 179, 113, 0.1);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease;
+        }
         
-        .btn-action {
-            padding: 6px 8px;
+        .demands-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .state-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
             font-size: 0.85rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .nav-tabs .nav-link {
-            padding: 8px 10px;
-            font-size: 0.8rem;
+            display: inline-block;
         }
         
-        .mobile-hide {
-            display: none;
+        .state-pending {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #856404;
         }
         
-        .status {
-            font-size: 0.8rem;
-            padding: 4px 8px;
+        .state-accepted {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: #155724;
         }
-    }
+        
+        .state-refused {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #721C24;
+        }
 
-    .demands-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(60, 179, 113, 0.1);
-        padding: 1rem;
-        margin-bottom: 2rem;
-        transition: transform 0.3s ease;
-    }
-    
-    .demands-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .state-badge {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        display: inline-block;
-    }
-    
-    .state-pending {
-        background-color: rgba(255, 193, 7, 0.2);
-        color: #856404;
-    }
-    
-    .state-accepted {
-        background-color: rgba(40, 167, 69, 0.2);
-        color: #155724;
-    }
-    
-    .state-refused {
-        background-color: rgba(220, 53, 69, 0.2);
-        color: #721C24;
-    }
-    .btn-warning {
-    background-color: #ffc107;
-    border: none;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 600;
-    white-space: nowrap;
-}
+        .btn-warning {
+            background-color: #ffc107;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            white-space: nowrap;
+        }
 
-.btn-warning:hover {
-    background-color: #e0a800;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(222, 170, 12, 0.4);
-}
+        .btn-warning:hover {
+            background-color: #e0a800;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(222, 170, 12, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -479,11 +478,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="bi bi-pencil-square"></i> <span class="mobile-hide">Modifier</span>
                                 </button>
                                 
-                                <form method="post" action="MesDemandes.php" class="d-inline">
+                                <form method="post" action="MesDemandes.php" class="d-inline delete-form">
                                     <input type="hidden" name="action" value="supprimer">
                                     <input type="hidden" name="id" value="$id">
-                                    <button type="submit" class="btn-action btn-sm btn-danger" 
-                                            onclick="return confirm('Voulez-vous vraiment annuler cette demande ?')">
+                                    <button type="submit" class="btn-action btn-sm btn-danger btn-delete">
                                         <i class="bi bi-x-circle"></i> <span class="mobile-hide">Annuler</span>
                                     </button>
                                 </form>
@@ -548,38 +546,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                     $days = dateDiff($demande['DateRetour'], $demande['DateDepart']) + 1;
                                     echo '<tr>
-        <td>'.$demande['ID'].'</td>
-        <td class="mobile-hide">'.$demande['type'].'</td>
-        <td class="mobile-hide">'.$demande['DateDemande'].'</td>
-        <td>'.date('d/m/y', strtotime($demande['DateDepart'])).'</td>
-        <td>'.date('d/m/y', strtotime($demande['DateRetour'])).'</td>
-        <td>'.$days.'</td>
-        <td>
-            <span class="state-badge '.$EtatClass.'">'.$EtatText.'</span>';
+                                            <td>'.$demande['ID'].'</td>
+                                            <td class="mobile-hide">'.$demande['type'].'</td>
+                                            <td class="mobile-hide">'.$demande['DateDemande'].'</td>
+                                            <td>'.date('d/m/y', strtotime($demande['DateDepart'])).'</td>
+                                            <td>'.date('d/m/y', strtotime($demande['DateRetour'])).'</td>
+                                            <td>'.$days.'</td>
+                                            <td>
+                                                <span class="state-badge '.$EtatClass.'">'.$EtatText.'</span>';
 
-// Ajouter le bouton d'annulation si le congé est validé (état=2) et pas encore commencé
-if ($Etat == 2 && strtotime($demande['DateDepart']) > time()) {
-    // Vérifier si une demande d'annulation n'existe pas déjà
-    $checkAnnulation = $bdd->prepare("SELECT id FROM annulation_demandes 
-                                    WHERE demande_id = ? AND statut = 'en_attente'");
-    $checkAnnulation->execute([$demande['ID']]);
-    
-    if ($checkAnnulation->rowCount() == 0) {
-        echo '<form method="post" action="MesDemandes.php" class="d-inline ms-2">
-                <input type="hidden" name="action" value="demander_annulation">
-                <input type="hidden" name="id" value="'.$demande['ID'].'">
-                <button type="submit" class="btn-action btn-sm btn-warning" 
-                        onclick="return confirm(\'Voulez-vous vraiment demander l\\\'annulation de ce congé validé ?\')">
-                    <i class="bi bi-x-circle"></i> <span class="mobile-hide">Annuler</span>
-                </button>
-              </form>';
-    } else {
-        echo '<span class="badge bg-info text-dark ms-2"><i class="bi bi-hourglass"></i> En attente</span>';
-    }
-}
+                                    if ($Etat == 2 && strtotime($demande['DateDepart']) > time()) {
+                                        $checkAnnulation = $bdd->prepare("SELECT id FROM annulation_demandes 
+                                                                        WHERE demande_id = ? AND statut = 'en_attente'");
+                                        $checkAnnulation->execute([$demande['ID']]);
+                                        
+                                        if ($checkAnnulation->rowCount() == 0) {
+                                            echo '<form method="post" action="MesDemandes.php" class="d-inline cancel-form">
+                                                    <input type="hidden" name="action" value="demander_annulation">
+                                                    <input type="hidden" name="id" value="'.$demande['ID'].'">
+                                                    <button type="submit" class="btn-action btn-sm btn-warning btn-cancel">
+                                                        <i class="bi bi-x-circle"></i> <span class="mobile-hide">Annuler</span>
+                                                    </button>
+                                                  </form>';
+                                        } else {
+                                            echo '<span class="badge bg-info text-dark ms-2"><i class="bi bi-hourglass"></i> En attente</span>';
+                                        }
+                                    }
 
-echo '</td>
-      </tr>';
+                                    echo '</td></tr>';
                                 }
                                 
                                 if($reqHistory->rowCount() == 0) {
@@ -594,7 +588,7 @@ echo '</td>
         </div>
     </div>
     
-    <!-- Modal de modification (identique à votre version) -->
+    <!-- Modal de modification -->
     <div class="modal fade" id="modalModifier" tabindex="-1" aria-labelledby="modalModifierLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -609,10 +603,9 @@ echo '</td>
                         <div class="mb-3">
                             <label for="modifier_type" class="form-label">Type de demande</label>
                             <select class="form-select" id="modifier_type" name="type" required>
-                            
-                            <?php foreach($types as $type): ?>
-                                <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
-                            <?php endforeach; ?>
+                                <?php foreach($types as $type): ?>
+                                    <option value="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         
@@ -634,13 +627,78 @@ echo '</td>
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Gestion du modal de modification
         document.addEventListener('DOMContentLoaded', function() {
-            var modalModifier = document.getElementById('modalModifier');
+            // Display session messages with SweetAlert2
+            <?php if (isset($_SESSION['message'])): ?>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès',
+                    text: '<?php echo htmlspecialchars($_SESSION['message']); ?>',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                <?php unset($_SESSION['message']); ?>
+            <?php endif; ?>
             
+            <?php if (isset($_SESSION['error'])): ?>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: '<?php echo htmlspecialchars($_SESSION['error']); ?>',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
+
+            // Handle delete confirmation
+            document.querySelectorAll('.delete-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Confirmer la suppression',
+                        text: 'Voulez-vous vraiment annuler cette demande ?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Oui, annuler',
+                        cancelButtonText: 'Non'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
+            // Handle cancellation request confirmation
+            document.querySelectorAll('.cancel-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Confirmer la demande d\'annulation',
+                        text: 'Voulez-vous vraiment demander l\'annulation de ce congé validé ?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Oui, demander',
+                        cancelButtonText: 'Non'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
+            // Modal modification handling
+            var modalModifier = document.getElementById('modalModifier');
             modalModifier.addEventListener('show.bs.modal', function (event) {
                 var button = event.relatedTarget;
                 var id = button.getAttribute('data-id');
@@ -653,49 +711,56 @@ echo '</td>
                 document.getElementById('modifier_datedepart').value = datedepart;
                 document.getElementById('modifier_dateretour').value = dateretour;
             });
-            
+
+            // Form submission validation
             document.getElementById('formModifier').addEventListener('submit', function(e) {
                 var datedepart = new Date(document.getElementById('modifier_datedepart').value);
                 var dateretour = new Date(document.getElementById('modifier_dateretour').value);
                 
                 if (dateretour < datedepart) {
-                    alert('La date de retour doit être postérieure à la date de départ');
                     e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur de dates',
+                        text: 'La date de retour doit être postérieure à la date de départ.',
+                    });
                 }
             });
+
+            // Weekend validation
             const dateDepartInput = document.querySelector('input[name="datedepart"]');
-    const dateRetourInput = document.querySelector('input[name="dateretour"]');
+            const dateRetourInput = document.querySelector('input[name="dateretour"]');
 
-    function isWeekend(dateStr) {
-        const date = new Date(dateStr);
-        const day = date.getDay();
-        return day === 0 || day === 6; // 0 = dimanche, 6 = samedi
-    }
+            function isWeekend(dateStr) {
+                const date = new Date(dateStr);
+                const day = date.getDay();
+                return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday
+            }
 
-    function checkAndAlert(input) {
-        const dateVal = input.value;
-        if (dateVal && isWeekend(dateVal)) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Date invalide',
-                text: 'La date sélectionnée tombe un weekend. Veuillez choisir un jour ouvrable.',
-            }).then(() => {
-                input.value = ''; // réinitialiser
-            });
-        }
-    }
+            function checkAndAlert(input) {
+                const dateVal = input.value;
+                if (dateVal && isWeekend(dateVal)) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Date invalide',
+                        text: 'La date sélectionnée tombe un weekend. Veuillez choisir un jour ouvrable.',
+                    }).then(() => {
+                        input.value = ''; // Reset input
+                    });
+                }
+            }
 
-    if (dateDepartInput) {
-        dateDepartInput.addEventListener('change', function() {
-            checkAndAlert(this);
-        });
-    }
+            if (dateDepartInput) {
+                dateDepartInput.addEventListener('change', function() {
+                    checkAndAlert(this);
+                });
+            }
 
-    if (dateRetourInput) {
-        dateRetourInput.addEventListener('change', function() {
-            checkAndAlert(this);
-        });
-    }
+            if (dateRetourInput) {
+                dateRetourInput.addEventListener('change', function() {
+                    checkAndAlert(this);
+                });
+            }
         });
     </script>
 </body>
