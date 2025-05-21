@@ -233,7 +233,7 @@
   </style>
 </head>
 <body>
-
+<h2 class="mb-4 fw-bold" style="color: var(--primary-color);"><i class="bi bi-calendar-fill"></i> Calendrier</h2>
   <div id="calendar"></div>
 
   <!-- Modal d'ajout d'événement -->

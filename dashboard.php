@@ -485,7 +485,7 @@
                 </div>
                 
                 <!-- Section Détails par Département -->
-<h2 class="mb-4 fw-bold" style="color: var(--primary-color);">Statistiques par département</h2>
+<h2 class="mb-4 fw-bold" style="color: var(--primary-color);"><i class="bi bi-graph-up-arrow"></i> Statistiques par département</h2>
 
 <?php
 $qualite = $_SESSION['qualite'];

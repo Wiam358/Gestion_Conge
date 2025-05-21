@@ -194,7 +194,7 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link" href="dashboard.php">
-                    <i class="bi bi-grid"></i> Tableau de Bord
+                    <i class="bi bi-grid-fill"></i> Tableau de Bord
                 </a>
             </li>
             <li class="nav-item">
@@ -217,16 +217,16 @@
             if (isset($_SESSION['qualite'])) {
                 if ($_SESSION['qualite'] === 'DG') {
                     echo '<li class="nav-item"><a class="nav-link" href="liste_dem_dg.php"><i class="bi bi-list"></i> Liste des demandes</a></li>';
-                    echo '<li class="nav-item"><a class="nav-link" href="gestion_annulations.php"><i class="bi bi-x-circle"></i> Annulations</a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="gestion_annulations.php"><i class="bi bi-x-circle-fill"></i> Annulations</a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="liste_perso_dg.php"><i class="bi bi-people-fill"></i> Les personnels </a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="archive_dg.php"><i class="bi bi-archive-fill"></i> Archive </a></li>';
-                    echo '<li class="nav-item"><a class="nav-link" href="diag_dg.php"><i class="bi bi-bar-chart"></i> Visualisation </a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="diag_dg.php"><i class="bi bi-bar-chart-fill"></i> Visualisation </a></li>';
                 }
                 if ($_SESSION['qualite'] === 'CD') {
                     echo '<li class="nav-item"><a class="nav-link" href="listeDemandes.php"><i class="bi bi-list"></i> Liste des demandes</a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="liste_equipe_cd.php"><i class="bi bi-people-fill"></i> Mon équipe </a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="archive_cd.php"><i class="bi bi-archive-fill"></i> Archive </a></li>';
-                    echo '<li class="nav-item"><a class="nav-link" href="diag_cd.php"><i class="bi bi-bar-chart"></i> Visualisation </a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="diag_cd.php"><i class="bi bi-bar-chart-fill"></i> Visualisation </a></li>';
 
                 }
                 if ($_SESSION['qualite'] === 'RH') {

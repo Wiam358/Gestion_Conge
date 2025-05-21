@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } elseif ($action === 'refuser') {
                 $bdd->prepare("UPDATE annulation_demandes SET statut = 'refusee' WHERE id = ?")->execute([$id]);
-                $_SESSION['message'] = "Demande d'annulation refusée";
+                $_SESSION['message'] = "Demande annulation refusée";
             }
         }
         header('Location: gestion_annulations.php');
@@ -92,15 +92,15 @@ $demandes = $bdd->query("
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
+            --primary-color: #2E8B57;
+            --secondary-color: #3CB371;
             --success-color: #2ecc71;
-            --danger-color: #e74c3c;
-            --light-bg: #f8f9fa;
+            --danger-color: rgb(219, 22, 22);
+            --light-bg: #006400;
             --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
@@ -191,8 +191,8 @@ $demandes = $bdd->query("
         }
         
         .btn-danger:hover {
-            background-color: #c0392b;
-            border-color: #c0392b;
+            background-color: rgb(199, 23, 23);
+            border-color: rgb(131, 6, 6);
             transform: translateY(-1px);
         }
         
@@ -297,19 +297,17 @@ $demandes = $bdd->query("
                                     <td><span class="badge bg-primary rounded-pill"><?= $jours ?></span></td>
                                     <td><?= date('d/m/y H:i', strtotime($demande['date_demande'])) ?></td>
                                     <td class="action-buttons">
-                                        <form method="post" class="d-inline">
+                                        <form method="post" class="d-inline accept-form">
                                             <input type="hidden" name="id" value="<?= $demande['id'] ?>">
-                                            <button type="submit" name="action" value="accepter" 
-                                                    class="btn btn-success btn-sm me-2"
-                                                    onclick="return confirm('Accepter cette annulation ?')">
+                                            <input type="hidden" name="action" value="accepter">
+                                            <button type="submit" class="btn btn-success btn-sm me-2 btn-accept">
                                                 <i class="bi bi-check-circle"></i> Accepter
                                             </button>
                                         </form>
-                                        <form method="post" class="d-inline">
+                                        <form method="post" class="d-inline refuse-form">
                                             <input type="hidden" name="id" value="<?= $demande['id'] ?>">
-                                            <button type="submit" name="action" value="refuser" 
-                                                    class="btn btn-danger btn-sm"
-                                                    onclick="return confirm('Refuser cette annulation ?')">
+                                            <input type="hidden" name="action" value="refuser">
+                                            <button type="submit" class="btn btn-danger btn-sm btn-refuse">
                                                 <i class="bi bi-x-circle"></i> Refuser
                                             </button>
                                         </form>
@@ -324,31 +322,87 @@ $demandes = $bdd->query("
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script>
-        // Animation pour les boutons
-        document.querySelectorAll('.btn').forEach(button => {
-            button.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-2px)';
-                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation pour les boutons
+            document.querySelectorAll('.btn').forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = '';
+                    this.style.boxShadow = '';
+                });
             });
             
-            button.addEventListener('mouseleave', function() {
-                this.style.transform = '';
-                this.style.boxShadow = '';
+            // Gestion des messages de session
+            <?php if (isset($_SESSION['message'])): ?>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès',
+                    text: '<?= htmlspecialchars($_SESSION['message']) ?>',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                <?php unset($_SESSION['message']); ?>
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['error'])): ?>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: '<?= htmlspecialchars($_SESSION['error']) ?>',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
+
+            // Handle accept confirmation
+            document.querySelectorAll('.accept-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Confirmer l\'acceptation',
+                        text: 'Voulez-vous vraiment accepter cette annulation ?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#2ecc71',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Oui, accepter',
+                        cancelButtonText: 'Non'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
+            // Handle refuse confirmation
+            document.querySelectorAll('.refuse-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Confirmer le refus',
+                        text: 'Voulez-vous vraiment refuser cette annulation ?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Oui, refuser',
+                        cancelButtonText: 'Non'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
             });
         });
-        
-        // Gestion des messages de session
-        <?php if (isset($_SESSION['message'])): ?>
-            Swal.fire({
-                icon: 'success',
-                title: 'Succès',
-                text: '<?= $_SESSION['message'] ?>',
-                timer: 3000,
-                showConfirmButton: false
-            });
-            <?php unset($_SESSION['message']); ?>
-        <?php endif; ?>
     </script>
 </body>
 </html>
