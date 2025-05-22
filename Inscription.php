@@ -87,7 +87,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pass'])) {
     overflow: hidden;
     /* Nouvelles propriétés pour le centrage */
     margin: 0 auto; /* Centre horizontalement */
-    max-width: 800px; /* Définit une largeur maximale */
+    max-width: 1100px; /* Définit une largeur maximale */
     width: 100%; /* S'adapte à la largeur du conteneur parent */
 }
         
@@ -200,7 +200,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pass'])) {
             <div class="form-header">
                 <h2 class="form-title mb-0">
                     <i class="bi bi-person-plus form-icon"></i>
-                    Ajouter un nouveau personnel
+                     Nouveau recrutement
                 </h2>
             </div>
             
