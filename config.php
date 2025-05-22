@@ -28,7 +28,7 @@ function EnvoyerEmail($to, $subject, $message, $cc = [], $bcc = []) {
         $mail->Encoding = 'base64'; // Better for special characters
 
         // Recipients
-        $mail->setFrom('wiamaithfid@gmail.com', 'wiam');
+        $mail->setFrom('wiamaithfid@gmail.com', 'CCISCS');
         $mail->addAddress($to); // Primary recipient
 
         // Add CC recipients if any
@@ -153,25 +153,24 @@ if(!isset($_SESSION['cin']) or !isset($_SESSION['login']))
 function demander($cin, $dateRetour, $dateDepart, $type, $description) {
     connexionBdd($bdd);
 
-    // 1. Récupérer les soldes séparés
-    $req = $bdd->prepare('SELECT conges_restants_annee_precedente, conges_annee_en_cours FROM personnel WHERE cin = :cin');
-    $req->execute(array(':cin' => $cin));
+    // 1. Récupérer les infos du demandeur
+    $req = $bdd->prepare('SELECT conges_restants_annee_precedente, conges_annee_en_cours, qualite, depart FROM personnel WHERE cin = :cin');
+    $req->execute([':cin' => $cin]);
     $result = $req->fetch();
+
+    if (!$result) return 'Erreur : employé non trouvé.';
+
+    $qualite = $result['qualite'];
+    $departement = $result['depart'];
 
     // 2. Calcul des jours demandés
     $diffDays = dateDiff($dateRetour, $dateDepart) + 1;
-
-    if ($diffDays == 0) {
-        return 'Veuillez remplir les deux champs';
-    }
+    if ($diffDays == 0) return 'Veuillez remplir les deux champs';
 
     $totalCongesDispo = $result['conges_restants_annee_precedente'] + $result['conges_annee_en_cours'];
+    if ($diffDays > $totalCongesDispo) return 'Vous avez dépassé le nombre de jours permis!';
 
-    if ($diffDays > $totalCongesDispo) {
-        return 'Vous avez dépassé le nombre de jours permis!';
-    }
-
-    // 3. Calcul des jours à déduire
+    // 3. Mise à jour des soldes
     $congesPrecedent = $result['conges_restants_annee_precedente'];
     $congesActuel = $result['conges_annee_en_cours'];
 
@@ -183,38 +182,54 @@ function demander($cin, $dateRetour, $dateDepart, $type, $description) {
         $congesActuel -= $reste;
     }
 
-    // 4. Enregistrement de la demande
+    // 4. Enregistrer la demande
     $dateNow = date('Y-m-d');
     $etat = 0;
 
     $req = $bdd->prepare('INSERT INTO demande(CIN, DateDepart, DateRetour, DateDemande, Etat, type, description) VALUES(:CIN, :DateDepart, :DateRetour, :DateDemande, :Etat, :type, :description)');
-    $req->execute(array(
+    $req->execute([
         ':CIN' => $cin,
         ':DateDepart' => $dateDepart,
         ':DateRetour' => $dateRetour,
         ':DateDemande' => $dateNow,
         ':Etat' => $etat,
         ':type' => $type,
-        ':description' =>$description
-    ));
+        ':description' => $description
+    ]);
 
-    // 5. Mise à jour des congés
+    // 5. Mettre à jour les congés
     $req = $bdd->prepare('UPDATE personnel SET conges_restants_annee_precedente = :precedent, conges_annee_en_cours = :actuel WHERE cin = :cin');
-    $req->execute(array(
+    $req->execute([
         ':precedent' => $congesPrecedent,
         ':actuel' => $congesActuel,
         ':cin' => $cin
-    ));
+    ]);
 
-    // 6. Notification
-    $to = "wiamaithfid@gmail.com";
-    $subject = "Demande de congé";
-    $message = "Une nouvelle demande en attente d'approbation \n Visiter : http://localhost/Test_conge2/listeDemandes.php";
-    $message = nl2br($message);
-    EnvoyerEmail($to, $subject, $message);
+    // 6. Trouver à qui envoyer l'e-mail
+    if ($qualite === 'SAL') {
+        // Récupère l’email du chef du même département
+        $req = $bdd->prepare("SELECT email FROM personnel WHERE qualite = 'CD' AND depart = :dep LIMIT 1");
+        $req->execute([':dep' => $departement]);
+    } else {
+        // Sinon, l'email du Directeur Général
+        $req = $bdd->prepare("SELECT email FROM personnel WHERE qualite = 'DG' LIMIT 1");
+        $req->execute();
+    }
+
+    $destinataire = $req->fetch();
+    if ($destinataire && filter_var($destinataire['email'], FILTER_VALIDATE_EMAIL)) {
+        $to = $destinataire['email'];
+        $subject = "Demande de congé en attente de validation";
+        $message = nl2br("Une nouvelle demande de congé a été soumise. Veuillez consulter la liste des demandes :\n\nhttp://localhost/Test_conge2/listeDemandes.php");
+        EnvoyerEmail($to, $subject, $message);
+    } else {
+        error_log("Aucun email de destinataire valide trouvé pour le demandeur $cin");
+    }
 
     return 'La demande a bien été envoyée !';
 }
+
+
 
 function ModifierDemande($id, $type, $description, $dateDepart, $dateRetour) {
     connexionBdd($bdd);

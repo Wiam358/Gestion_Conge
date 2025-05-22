@@ -15,42 +15,55 @@ if(isset($_POST['accepter'])) {
     EtatDemande($_POST['accepter'], 1);
     $cin1 = CinFromID($_POST['accepter']);
     $emailPer = InfosPersonnel($cin1);
-    if (is_array($emailPer) && isset($emailPer['email'])) {
-        $subject = "État de la demande de congé";
-        $message = "Votre demande a été acceptée.\nConsulter : http://localhost/Test2_conge/MesDemandes.php";
-        EnvoyerEmail($emailPer['email'], $subject, $message);
+if (!$emailPer || empty($emailPer['email'])) {
+    error_log("Email non trouvé pour le CIN $cin1");
+} else {
+    $subject = "Pré-validation de votre demande de congé";
+    $message = "Bonjour,\n\nVotre demande de congé a été pré-validée par le Chef de département.\n\nCordialement,";
+
+    if (EnvoyerEmail($emailPer['email'], $subject, nl2br($message))) {
+        // Email envoyé
     } else {
-        // Log or handle the error (e.g., invalid CIN or no email found)
-        error_log("Erreur: Aucun email trouvé pour CIN $cin1 lors de l'acceptation de la demande ID {$_POST['accepter']}");
+        error_log("Erreur d'envoi d'email à " . $emailPer['email']);
     }
+}
+
 }
 
 if(isset($_POST['refuser'])) {
     EtatDemande($_POST['refuser'], -1);
     $cin1 = CinFromID($_POST['refuser']);
     $emailPer = InfosPersonnel($cin1);
-    if (is_array($emailPer) && isset($emailPer['email'])) {
-        $subject = "État de la demande de congé";
-        $message = "Votre demande a été refusée.\nConsulter : http://localhost/Test2_conge/MesDemandes.php";
-        EnvoyerEmail($emailPer['email'], $subject, $message);
+    if (!$emailPer || empty($emailPer['email'])) {
+    error_log("Email non trouvé pour le CIN $cin1");
     } else {
-        // Log or handle the error
-        error_log("Erreur: Aucun email trouvé pour CIN $cin1 lors du refus de la demande ID {$_POST['refuser']}");
+    $subject = "Refus de votre demande de congé";
+    $message = "Bonjour,\n\nVotre demande de congé a été refusée par le Chef de département.\n\nCordialement,";
+
+    if (EnvoyerEmail($emailPer['email'], $subject, nl2br($message))) {
+        // Email envoyé
+    } else {
+        error_log("Erreur d'envoi d'email à " . $emailPer['email']);
     }
+}
 }
 
 if(isset($_POST['pasEncore'])) {
     EtatDemande($_POST['pasEncore'], 0);
     $cin1 = CinFromID($_POST['pasEncore']); // Corrigé: 'pasEnCore' -> 'pasEncore'
     $emailPer = InfosPersonnel($cin1);
-    if (is_array($emailPer) && isset($emailPer['email'])) {
-        $subject = "État de la demande de congé";
-        $message = "Votre demande est en cours de traitement.\nConsulter : http://localhost/Test2_conge/MesDemandes.php";
-        EnvoyerEmail($emailPer['email'], $subject, $message);
+    if (!$emailPer || empty($emailPer['email'])) {
+    error_log("Email non trouvé pour le CIN $cin1");
+} else {
+    $subject = "Etat de votre demande de congé";
+    $message = "Bonjour,\n\nVotre demande de congé est en cours de traitement.\n\nCordialement,";
+
+    if (EnvoyerEmail($emailPer['email'], $subject, nl2br($message))) {
+        // Email envoyé
     } else {
-        // Log or handle the error
-        error_log("Erreur: Aucun email trouvé pour CIN $cin1 lors de la mise en attente de la demande ID {$_POST['pasEncore']}");
+        error_log("Erreur d'envoi d'email à " . $emailPer['email']);
     }
+}
 }
 
 // Récupérer le département du chef connecté

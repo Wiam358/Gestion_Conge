@@ -84,6 +84,46 @@ if(isset($_POST['rejeter'])) {
 }
 
 
+
+// Traitement des actions sur les demandes
+if(isset($_POST['valider'])) {
+    EtatDemande($_POST['valider'], 2);
+    $cin1 = CinFromID($_POST['valider']);
+    $emailPer = InfosPersonnel($cin1);
+if (!$emailPer || empty($emailPer['email'])) {
+    error_log("Email non trouvé pour le CIN $cin1");
+} else {
+    $subject = "Validation de votre demande de congé";
+    $message = "Bonjour,\n\nVotre demande de congé a été validée par le Directeur Général.\n\nVous pouvez avoir votre décision de congé chez le service RH \n\nCordialement,";
+
+    if (EnvoyerEmail($emailPer['email'], $subject, nl2br($message))) {
+        // Email envoyé
+    } else {
+        error_log("Erreur d'envoi d'email à " . $emailPer['email']);
+    }
+}
+
+}
+
+if(isset($_POST['rejeter'])) {
+    EtatDemande($_POST['rejeter'], -2);
+    $cin1 = CinFromID($_POST['rejeter']);
+    $emailPer = InfosPersonnel($cin1);
+    if (!$emailPer || empty($emailPer['email'])) {
+    error_log("Email non trouvé pour le CIN $cin1");
+    } else {
+    $subject = "Refus de votre demande de congé";
+    $message = "Bonjour,\n\nVotre demande de congé a été refusée par le Directeur Général.\n\nCordialement,";
+
+    if (EnvoyerEmail($emailPer['email'], $subject, nl2br($message))) {
+        // Email envoyé
+    } else {
+        error_log("Erreur d'envoi d'email à " . $emailPer['email']);
+    }
+}
+}
+
+
 // Récupération des demandes selon le filtre
 if(isset($_GET['enAttente'])) {
     $reponse = DemandesEnAttentePourDG(); // À implémenter dans config.php
