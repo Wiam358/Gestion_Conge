@@ -389,7 +389,7 @@
                                         SELECT p.nom, p.prenom, d.DateDepart, d.DateRetour
                                         FROM demande d 
                                         JOIN personnel p ON d.cin = p.cin 
-                                        WHERE d.Etat = 1 AND p.depart = 
+                                        WHERE d.Etat = 2 AND p.depart = 
                                         (SELECT depart FROM personnel WHERE cin = ?)
                                         AND d.DateRetour >= CURRENT_DATE()
                                         GROUP BY d.DateDepart, d.DateRetour 
@@ -450,7 +450,7 @@
                             $req = $bdd->prepare("SELECT COUNT(DISTINCT depart) FROM 
                                                 (SELECT p.depart, d.DateDepart, d.DateRetour 
                                                  FROM demande d JOIN personnel p ON d.cin = p.cin 
-                                                 WHERE d.Etat = 1 AND d.DateRetour >= CURRENT_DATE()
+                                                 WHERE d.Etat = 2 AND d.DateRetour >= CURRENT_DATE()
                                                  GROUP BY p.depart, d.DateDepart, d.DateRetour 
                                                  HAVING COUNT(*) > 2) AS alerts");
                             $req->execute();
@@ -495,23 +495,37 @@ if ($qualite === 'DG' || $qualite === 'CD'):
 
     // Requête avec filtre si Chef de Département
     $sql = "SELECT 
-                p.depart,
-                SUM(CASE WHEN d.Etat = 1 THEN 1 ELSE 0 END) as valides,
-                SUM(CASE WHEN d.Etat = -2 THEN 1 ELSE 0 END) as refuses,
-                SUM(CASE WHEN d.Etat = 0 THEN 1 ELSE 0 END) as en_attente,
-                COUNT(DISTINCT CASE WHEN EXISTS (
-                    SELECT 1 FROM demande d2 
-                    JOIN personnel p2 ON d2.cin = p2.cin 
-                    WHERE p2.depart = p.depart 
-                    AND d2.Etat = 1 
-                    AND d2.DateRetour >= CURRENT_DATE()
-                    AND d2.DateDepart = d.DateDepart 
-                    AND d2.DateRetour = d.DateRetour 
-                    GROUP BY d2.DateDepart, d2.DateRetour 
-                    HAVING COUNT(*) > 2
-                ) THEN d.id END) as alertes
-            FROM personnel p 
-            LEFT JOIN demande d ON p.cin = d.cin ";
+    p.depart,
+    
+    -- Demandes validées (Etat = 2)
+    SUM(CASE WHEN d.Etat = 2 THEN 1 ELSE 0 END) AS valides,
+
+    -- Demandes refusées (Etat = -2)
+    SUM(CASE WHEN d.Etat = -2 THEN 1 ELSE 0 END) AS refuses,
+
+    -- En attente : si SAL -> Etat = 0, si CD/DG/RH -> Etat = 1
+    SUM(CASE WHEN  d.Etat = 0 THEN 1 ELSE 0 END) AS en_attente,
+
+    -- Alertes : + de 2 demandes validées pour la même date de départ dans le même département
+    COUNT(DISTINCT CASE 
+        WHEN EXISTS (
+            SELECT 1
+            FROM demande d2
+            JOIN personnel p2 ON d2.cin = p2.cin
+            WHERE p2.depart = p.depart
+              AND d2.Etat = 2
+              AND d2.DateDepart = d.DateDepart
+              AND d2.DateRetour = d.DateRetour
+              AND d2.DateRetour >= CURRENT_DATE()
+            GROUP BY d2.DateDepart
+            HAVING COUNT(*) > 2
+        ) THEN d.id
+    END) AS alertes
+
+FROM personnel p
+LEFT JOIN demande d ON p.cin = d.cin
+GROUP BY p.depart;
+";
 
     // Si c’est un chef de département, filtrer
     if ($qualite === 'CD') {

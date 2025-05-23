@@ -254,7 +254,7 @@ h3 {
                         </select>
                     </div>
                     
-                    <div class="col-md-3 d-flex align-items-end">
+                    <div class="col-md-4 d-flex align-items-end">
                         <div class="d-flex gap-2 w-100">
                             <button type="submit" class="btn btn-danger flex-grow-1">
                                 <i class="bi bi-funnel"></i> Filtrer
