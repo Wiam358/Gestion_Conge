@@ -609,11 +609,100 @@ connexionBdd($bdd);
 $req=$bdd->query('SELECT * FROM personnel WHERE qualite=\'' .htmlspecialchars(trim($admin)). '\'');
 return $req;   
 }
-function SupprimerPersonnel($id){
-
-connexionBdd($bdd);
-$req = $bdd->prepare('DELETE FROM personnel WHERE cin = :pcin');
-$req->execute(array(':pcin' => $id));
+function SupprimerPersonnel($id, $description = "") {
+    connexionBdd($bdd);
+    
+    try {
+        $bdd->beginTransaction();
+        
+        // 1. Archiver avec la description
+        $reqArchive = $bdd->prepare("
+            INSERT INTO personnel_archive (
+                cin, nom, prenom, service, depart, tel, adresse, jourstot, joursrest,
+                login, mdp, qualite, email, reset_token, reset_expires,
+                conges_restants_annee_precedente, conges_annee_en_cours, date_archivage,
+                description
+            )
+            SELECT 
+                cin, nom, prenom, service, depart, tel, adresse, 
+                IFNULL(jourstot, 0), IFNULL(joursrest, 0),
+                login, pass, qualite, email, 
+                reset_token, reset_expires,
+                IFNULL(conges_restants_annee_precedente, 0),
+                IFNULL(conges_annee_en_cours, 22),
+                NOW(),
+                :description
+            FROM personnel 
+            WHERE cin = :pcin
+        ");
+        $reqArchive->execute([
+            ':pcin' => $id,
+            ':description' => $description
+        ]);
+        
+        // 2. Supprimer de la table principale
+        $reqDelete = $bdd->prepare("DELETE FROM personnel WHERE cin = :pcin");
+        $reqDelete->execute([':pcin' => $id]);
+        
+        $bdd->commit();
+        return true;
+        
+    } catch (Exception $e) {
+        if (isset($bdd) && $bdd->inTransaction()) {
+            $bdd->rollBack();
+        }
+        error_log("Erreur SupprimerPersonnel: " . $e->getMessage());
+        throw new Exception("Erreur lors de l'archivage: " . $e->getMessage());
+    }
+}
+function RestaurerPersonnel($cin) {
+    connexionBdd($bdd);
+    
+    try {
+        $bdd->beginTransaction();
+        
+        // 1. D'abord insérer dans la table principale
+        $reqRestore = $bdd->prepare("
+            INSERT INTO personnel (
+                cin, nom, prenom, service, depart, tel, adresse, jourstot, joursrest,
+                login, pass, qualite, email, reset_token, reset_expires,
+                conges_restants_annee_precedente, conges_annee_en_cours
+            )
+            SELECT 
+                cin, nom, prenom, service, depart, tel, adresse, 
+                IFNULL(jourstot, 0) AS jourstot, 
+                IFNULL(joursrest, 0) AS joursrest,
+                login, mdp, qualite, email, 
+                NULL AS reset_token, 
+                NULL AS reset_expires,
+                IFNULL(conges_restants_annee_precedente, 0),
+                IFNULL(conges_annee_en_cours, 22)
+            FROM personnel_archive 
+            WHERE cin = :pcin
+        ");
+        $reqRestore->execute([':pcin' => $cin]);
+        
+        if ($reqRestore->rowCount() === 0) {
+            throw new Exception("Aucun personnel trouvé dans les archives avec ce CIN");
+        }
+        
+        // 2. Supprimer des archives
+        $reqDelete = $bdd->prepare("DELETE FROM personnel_archive WHERE cin = :pcin");
+        $reqDelete->execute([':pcin' => $cin]);
+        
+        $bdd->commit();
+        return true;
+        
+    } catch (PDOException $e) {
+        if (isset($bdd) && $bdd->inTransaction()) {
+            $bdd->rollBack();
+        }
+        error_log("Erreur RestaurerPersonnel: " . $e->getMessage());
+        throw new Exception("Erreur de base de données lors de la restauration");
+    } catch (Exception $e) {
+        error_log("Erreur RestaurerPersonnel: " . $e->getMessage());
+        throw $e;
+    }
 }
 
 function CinFromID($id){

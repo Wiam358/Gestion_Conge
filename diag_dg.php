@@ -5,10 +5,10 @@ include_once('header.php');
 
 // Vérification DG
 verifySession();
-if($_SESSION['qualite'] != 'DG') {
-    header('Location: accueil.php');
-    exit();
-}
+// if($_SESSION['qualite'] != 'DG') {
+//     header('Location: accueil.php');
+//     exit();
+// }
 
 // Récupérer les données pour les graphiques
 $bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
@@ -60,6 +60,13 @@ $congesGantt = $reqGantt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.css">
+    <!-- html2canvas pour le screenshot -->
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<!-- jsPDF pour générer le PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- SweetAlert pour les notifications -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -156,6 +163,24 @@ $congesGantt = $reqGantt->fetchAll();
                 height: 300px;
             }
         }
+/* Styles pour l'impression */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #gantt-container, #gantt-container * {
+        visibility: visible;
+    }
+    #gantt-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .no-print {
+        display: none !important;
+    }
+}
 
     </style>
 </head>
@@ -180,12 +205,18 @@ $congesGantt = $reqGantt->fetchAll();
         </div>
         
         <!-- Diagramme de Gantt -->
-        <div class="dashboard-card">
-            <h3 class="card-title"><i class="bi bi-calendar-range"></i> Calendrier des congés <?= $currentYear ?></h3>
-            <div class="card-body">
-                <div id="gantt-container"></div>
-            </div>
-        </div>
+<div class="dashboard-card">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3 class="card-title"><i class="bi bi-calendar-range"></i> Calendrier des congés <?= $currentYear ?></h3>
+        <button id="printGanttBtn" class="btn btn-success">
+            <i class="bi bi-printer"></i> Exporter en PDF
+        </button>
+    </div>
+    <div class="card-body">
+        <div id="gantt-container"></div>
+    </div>
+</div>
+<br><br><br><br><br><br>
 
 <!-- Script Frappe Gantt -->
     <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
@@ -359,5 +390,94 @@ $congesGantt = $reqGantt->fetchAll();
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+document.getElementById('printGanttBtn').addEventListener('click', async function() {
+    const { jsPDF } = window.jspdf;
+    const ganttContainer = document.getElementById('gantt-container');
+    
+    // Afficher un loader
+    Swal.fire({
+        title: 'Préparation du PDF',
+        html: 'Génération du diagramme en cours...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    try {
+        // 1. Capturer le contenu
+        const canvas = await html2canvas(ganttContainer, {
+            scale: 2, // Qualité x2
+            logging: false,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#FFFFFF'
+        });
+
+        // 2. Créer le PDF
+        const pdf = new jsPDF('landscape');
+        const imgData = canvas.toDataURL('image/png');
+        
+        // Calculer les dimensions pour remplir la page
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgRatio = canvas.width / canvas.height;
+        let imgWidth = pdfWidth;
+        let imgHeight = pdfWidth / imgRatio;
+        
+        if (imgHeight > pdfHeight) {
+            imgHeight = pdfHeight;
+            imgWidth = imgHeight * imgRatio;
+        }
+
+        // Centrer l'image
+        const x = (pdfWidth - imgWidth) / 2;
+        const y = (pdfHeight - imgHeight) / 2;
+        
+        pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+        
+        // 3. Télécharger ou imprimer
+        Swal.fire({
+            title: 'Export réussi',
+            html: 'Voulez-vous <b>imprimer</b> ou <b>télécharger</b> le PDF ?',
+            icon: 'success',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: '<i class="bi bi-printer"></i> Imprimer',
+            denyButtonText: '<i class="bi bi-download"></i> Télécharger',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                pdf.autoPrint();
+                pdf.output('dataurlnewwindow');
+            } else if (result.isDenied) {
+                pdf.save(`calendrier-conges-${new Date().toISOString().split('T')[0]}.pdf`);
+            }
+        });
+
+    } catch (error) {
+        Swal.fire({
+            title: 'Erreur',
+            text: 'Une erreur est survenue lors de la génération du PDF',
+            icon: 'error'
+        });
+        console.error('Erreur génération PDF:', error);
+    }
+});
+// Avant pdf.addImage()
+pdf.setFontSize(20);
+pdf.setTextColor(46, 139, 87); // Couleur #2E8B57
+pdf.text('Calendrier des Congés ' + new Date().getFullYear(), pdfWidth/2, 15, { align: 'center' });
+
+// Décaler l'image vers le bas
+pdf.addImage(imgData, 'PNG', x, y + 20, imgWidth, imgHeight);
+pdf.setFontSize(60);
+pdf.setTextColor(230, 230, 230); // Gris clair
+pdf.setGState(new pdf.GState({ opacity: 0.3 }));
+pdf.text('CONFIDENTIEL', pdfWidth/2, pdfHeight/2, {
+    angle: 45,
+    align: 'center'
+});
+pdf.setGState(new pdf.GState({ opacity: 1 }));
+</script>
 </body>
 </html>

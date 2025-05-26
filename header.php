@@ -233,6 +233,7 @@
                     echo '<li class="nav-item"><a class="nav-link" href="listePersonnels.php"><i class="bi bi-list"></i> Personnels</a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="Inscription.php"><i class="bi bi-person-fill-add"></i> Inscription</a></li>';
                     echo '<li class="nav-item"><a class="nav-link" href="rh.php"><i class="bi bi-printer-fill"></i> Imprimante</a></li>';
+                    echo '<li class="nav-item"><a class="nav-link" href="diag_dg.php"><i class="bi bi-bar-chart-fill"></i> Visualisation </a></li>';
                 }
             }
             ?>

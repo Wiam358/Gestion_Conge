@@ -1,4 +1,11 @@
 <?php
+// Activation du rapport d'erreurs (à retirer en production)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Journalisation des erreurs
+error_log("=== Début de traitement ===");
 session_start();
 include_once('config.php');
 verifySession(); 
@@ -13,9 +20,22 @@ $grades = GetGrade();
 $message = null;
 
 // Gestion des actions
-if(isset($_POST['supprimer'])){
-    SupprimerPersonnel($_POST['supprimer']);
-    $message = ["type" => "success", "text" => "Utilisateur supprimé avec succès"];
+if(isset($_POST['supprimer']) && isset($_POST['description'])) {
+    try {
+        if(SupprimerPersonnel($_POST['supprimer'], $_POST['description'])) {
+            $_SESSION['message'] = [
+                'type' => 'success',
+                'text' => 'Personnel archivé avec raison'
+            ];
+        }
+    } catch (Exception $e) {
+        $_SESSION['message'] = [
+            'type' => 'danger',
+            'text' => 'Erreur: ' . $e->getMessage()
+        ];
+    }
+    header('Location: listePersonnels.php');
+    exit();
 }
 
 $reponse = TousPersonnels();
@@ -236,6 +256,9 @@ if(isset($_POST['newValue'])){
                     <span class="badge bg-secondary">
                         <i class="bi bi-person-check"></i> <?= $reponse->rowCount() ?> Personnels
                     </span>
+                    <a href="archive_perso.php" class="btn btn-outline-secondary">
+                        <i class="bi bi-archive"></i> Voir les archives
+                    </a>
                 </div>
             </div>
             
@@ -306,7 +329,7 @@ if(isset($_POST['newValue'])){
                             <th>Département</th>
                             <th>Contact</th>
                             <th>Congés C/P</th>
-                            <th>Rôle</th>
+                            <th>Qualité</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -361,9 +384,9 @@ if(isset($_POST['newValue'])){
                                     </button>
                                     
                                     <form method="post" action="listePersonnels.php" class="d-inline">
-                                        <button type="submit" name="supprimer" value="<?= $donnees['cin'] ?>" 
-                                                class="btn btn-sm btn-outline-danger action-btn"
-                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce personnel ?')">
+                                        <button type="button" class="btn btn-sm btn-outline-danger action-btn" 
+                                                data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
+                                                data-cin="<?= $donnees['cin'] ?>">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -521,5 +544,44 @@ if(isset($_POST['newValue'])){
             modal.querySelector(`input[name="qualite"][value="${qualite}"]`).checked = true;
         });
     </script>
+    <!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmer l'archivage</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="deleteForm" method="post" action="listePersonnels.php">
+                <div class="modal-body">
+                    <input type="hidden" name="supprimer" id="deleteCin">
+                    <div class="mb-3">
+                        <label for="deleteReason" class="form-label">Veuillez indiquer la raison de l'archivage :</label>
+                        <textarea class="form-control" id="deleteReason" name="description" rows="3" required></textarea>
+                    </div>
+                    <p class="text-muted">Cette information sera enregistrée dans les archives.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Confirmer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Script pour gérer la suppression
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('[data-bs-target="#confirmDeleteModal"]');
+    
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const cin = this.getAttribute('data-cin');
+            document.getElementById('deleteCin').value = cin;
+        });
+    });
+});
+</script>
 </body>
 </html>
