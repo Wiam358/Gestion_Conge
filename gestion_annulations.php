@@ -121,7 +121,7 @@ $demandes = $bdd->query("
         }
         
         .page-header {
-            color: var(--secondary-color);
+            color: var(--primary-color);
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 0.5rem;
             margin-bottom: 1.5rem;
@@ -348,7 +348,7 @@ $demandes = $bdd->query("
     <div class="container py-3">
         <div class="main-container">
             <h2 class="page-header">
-                <i class="bi bi-x-circle-fill"></i> Demandes d'annulation en attente
+                <i class="bi bi-x-circle-fill"></i> <b>DEMANDES D'ANNULATION</b>
             </h2>
             
             <?php if (empty($demandes)): ?>
@@ -378,7 +378,7 @@ $demandes = $bdd->query("
                                 ?>
                                 <tr>
                                     <td><?= $demande['demande_id'] ?></td>
-                                    <td><?= htmlspecialchars($demande['prenom'].' '.$demande['nom']) ?></td>
+                                    <td><?= htmlspecialchars($demande['prenom'].' '.strtoupper($demande['nom'])) ?></td>
                                     <td class="mobile-hide"><?= htmlspecialchars($demande['type']) ?></td>
                                     <td class="period-cell">
                                         <?= date('d/m/y', strtotime($demande['DateDepart'])) ?> 

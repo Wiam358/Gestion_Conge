@@ -328,7 +328,7 @@ if(isset($_POST['newValue'])){
                             <th>Service</th>
                             <th>Département</th>
                             <th>Contact</th>
-                            <th>Congés C/P</th>
+                            <th>Congés P/C</th>
                             <th>Qualité</th>
                             <th>Actions</th>
                         </tr>
@@ -377,8 +377,8 @@ if(isset($_POST['newValue'])){
                                             data-tel="<?= $donnees['tel'] ?>"
                                             data-adresse="<?= $donnees['adresse'] ?>"
                                             data-email="<?= $donnees['email'] ?>"
-                                            data-jtot="<?= $donnees['jourstot'] ?>"
-                                            data-jrest="<?= $donnees['joursrest'] ?>"
+                                            data-jtot="<?= $donnees['conges_annee_en_cours'] ?>"
+                                            data-jrest="<?= $donnees['conges_restants_annee_precedente'] ?>"
                                             data-qualite="<?= $donnees['qualite'] ?>">
                                         <i class="bi bi-pencil"></i>
                                     </button>

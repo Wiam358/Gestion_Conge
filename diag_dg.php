@@ -284,12 +284,13 @@ $congesGantt = $reqGantt->fetchAll();
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+        
     </style>
         <!-- Deuxième ligne : Liste des congés en cours -->
         <!-- Liste des congés -->
 <div class="dashboard-card">
     <div class="card-header">
-        <div class="card-title"><h4><i class="bi bi-list-ul"></i> Congés en cours dans l'organisme</h4></div>
+        <div class="card-title"><h4><i class="bi bi-list-ul"></i> <b>Congés en cours dans l'organisme</b></h4></div>
     </div>
     <br>
     <div class="card-body">

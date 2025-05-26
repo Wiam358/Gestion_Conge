@@ -184,7 +184,7 @@ if(isset($_POST['grades']) && $_POST['grades'] != "false") {
             
             <!-- Carte de recherche -->
             <div class="search-card">
-                <form method="post" action="listePersonnels.php">
+                <form method="post" action="liste_perso_dg.php">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
                             <label for="scin" class="form-label fw-semibold">Recherche par CIN</label>
@@ -240,7 +240,7 @@ if(isset($_POST['grades']) && $_POST['grades'] != "false") {
                             <th>Service</th>
                             <th>Département</th>
                             <th>Contact</th>
-                            <th>Congés C/P</th>
+                            <th>Congés P/C</th>
                             <th>Qualité</th>
                             
                         </tr>
