@@ -15,14 +15,70 @@ if (isset($_POST['action']) && $_POST['action'] == 'demander_annulation' && isse
     $demande = $stmt->fetch();
 
     if ($demande && strtotime($demande['DateDepart']) > time()) {
-        // Créer une demande d'annulation dans une nouvelle table ou mettre à jour l'état
+        // Créer une demande d'annulation dans une nouvelle table
         try {
             $insert = $bdd->prepare("INSERT INTO annulation_demandes (demande_id, cin, date_demande, statut) 
                                    VALUES (?, ?, NOW(), 'en_attente')");
             if ($insert->execute([$id, $_SESSION['cin']])) {
+                // Fetch employee details
+                $employee = InfosPersonnel($_SESSION['cin']);
+                $jours = dateDiff($demande['DateRetour'], $demande['DateDepart']) + 1;
+
+                // Send confirmation email to employee
+                if ($employee && !empty($employee['email'])) {
+                    $subject = "Confirmation de votre demande d'annulation de congé";
+                    $message = "<p>Bonjour {$employee['prenom']} {$employee['nom']},</p>" .
+                               "<p>Votre demande d'annulation de congé a été soumise avec succès et est en attente de validation par la Direction Générale.</p>" .
+                               "<p><strong>Détails de la demande :</strong></p>" .
+                               "<ul>" .
+                               "<li><strong>Période :</strong> du {$demande['DateDepart']} au {$demande['DateRetour']}</li>" .
+                               "<li><strong>Nombre de jours :</strong> {$jours} jour" . ($jours > 1 ? "s" : "") . "</li>" .
+                               "<li><strong>Type de congé :</strong> {$demande['type']}</li>" .
+                               "<li><strong>ID de la demande :</strong> {$id}</li>" .
+                               "</ul>" .
+                               "<p>Vous serez informé(e) de la décision de la Direction Générale par email.</p>" .
+                               "<p>Pour toute question, veuillez contacter le service des Ressources Humaines.</p>" .
+                               "<p>Cordialement,<br>L'équipe RH</p>";
+
+                    if (!EnvoyerEmail($employee['email'], $subject, $message)) {
+                        error_log("Erreur d'envoi d'email de confirmation à {$employee['email']} pour la demande d'annulation ID $id");
+                    }
+                } else {
+                    error_log("Email non trouvé pour le CIN {$_SESSION['cin']} lors de la demande d'annulation ID $id");
+                }
+
+                // Fetch DG email
+                $reqDG = $bdd->prepare("SELECT email FROM personnel WHERE qualite = 'DG' LIMIT 1");
+                $reqDG->execute();
+                $dg = $reqDG->fetch();
+                $dgEmail = $dg['email'] ?? null;
+
+                if ($dgEmail) {
+                    // Send email to DG
+                    $subject = "Nouvelle demande d'annulation de congé";
+                    $message = "<p>Bonjour,</p>" .
+                               "<p>Une demande d'annulation de congé a été soumise pour votre approbation.</p>" .
+                               "<p><strong>Détails de la demande :</strong></p>" .
+                               "<ul>" .
+                               "<li><strong>Employé :</strong> {$employee['prenom']} {$employee['nom']} (CIN : {$_SESSION['cin']})</li>" .
+                               "<li><strong>Période du congé :</strong> du {$demande['DateDepart']} au {$demande['DateRetour']}</li>" .
+                               "<li><strong>Nombre de jours :</strong> {$jours} jour" . ($jours > 1 ? "s" : "") . "</li>" .
+                               "<li><strong>Type de congé :</strong> {$demande['type']}</li>" .
+                               "<li><strong>ID de la demande :</strong> {$id}</li>" .
+                               "</ul>" .
+                               "<p>Veuillez examiner cette demande dans le système de gestion des congés.</p>" .
+                               "<p>Cordialement,<br>L'équipe RH</p>";
+
+                    if (!EnvoyerEmail($dgEmail, $subject, $message)) {
+                        error_log("Erreur d'envoi d'email à DG : $dgEmail pour la demande d'annulation ID $id");
+                    }
+                } else {
+                    error_log("Email du DG non trouvé dans la base de données pour la demande d'annulation ID $id");
+                }
+
                 $_SESSION['message'] = "Demande annulation envoyée au DG";
             } else {
-                $_SESSION['error'] = "Erreur lors de la demande d'annulation";
+                $_SESSION['error'] = "Erreur lors de la demande annulation";
             }
         } catch (Exception $e) {
             $_SESSION['error'] = "Erreur technique: " . $e->getMessage();

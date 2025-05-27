@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     
                     // 4. Mise à jour des soldes
-                    $update = $bdd->prepare("UPDATE personnel SET conges_restants_annee_precedente = ?, conges_annee_en_cours = ? WHERE cin = ?");
-                    $update->execute([$precedent, $actuel, $cin]);
+                    // $update = $bdd->prepare("UPDATE personnel SET conges_restants_annee_precedente = ?, conges_annee_en_cours = ? WHERE cin = ?");
+                    // $update->execute([$precedent, $actuel, $cin]);
                     
                     // 5. Mettre à jour le statut de la demande d'annulation
                     $bdd->prepare("UPDATE annulation_demandes SET statut = 'acceptee' WHERE id = ?")->execute([$id]);
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $bdd->prepare("UPDATE demande SET Etat = 0 WHERE ID = ?")->execute([$data['demande_id']]);
                     
                     $bdd->commit();
-                    $_SESSION['message'] = "Annulation acceptée et solde recrédité";
+                    $_SESSION['message'] = "Annulation acceptée";
                 } catch (Exception $e) {
                     $bdd->rollBack();
                     $_SESSION['error'] = "Erreur: " . $e->getMessage();

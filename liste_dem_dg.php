@@ -87,6 +87,9 @@ if(isset($_POST['rejeter'])) {
 
 // Traitement des actions sur les demandes
 if(isset($_POST['valider'])) {
+    $reqDemande = $bdd->prepare('SELECT * FROM demande WHERE ID = ?');
+    $reqDemande->execute([$idDemande]);
+    $demande = $reqDemande->fetch();
     EtatDemande($_POST['valider'], 2);
     $cin1 = CinFromID($_POST['valider']);
     $emailPer = InfosPersonnel($cin1);
@@ -94,7 +97,7 @@ if (!$emailPer || empty($emailPer['email'])) {
     error_log("Email non trouvé pour le CIN $cin1");
 } else {
     $subject = "Validation de votre demande de congé";
-    $message = "Bonjour,\n\nVotre demande de congé a été validée par le Directeur Général.\n\nVous pouvez avoir votre décision de congé chez le service RH \n\nCordialement,";
+    $message = "Bonjour,\n\nVotre demande de congé du {$demande['DateDepart']} au {$demande['DateRetour']} a été validée par le Directeur Général.\n\nVous pouvez récupérer votre décision de congé auprès du service RH.\n\nCordialement,";
 
     if (EnvoyerEmail($emailPer['email'], $subject, nl2br($message))) {
         // Email envoyé
@@ -102,10 +105,28 @@ if (!$emailPer || empty($emailPer['email'])) {
         error_log("Erreur d'envoi d'email à " . $emailPer['email']);
     }
 }
+// Fetch HR email (assuming HR has qualite = 'RH' in personnel table)
+        $reqHR = $bdd->prepare("SELECT email FROM personnel WHERE qualite = 'RH' LIMIT 1");
+        $reqHR->execute();
+        $hr = $reqHR->fetch();
+        $hrEmail = $hr['email'] ?? null;
 
+        if ($hrEmail) {
+            // Send email to HR to notify about printing the leave decision
+            $hrSubject = "Nouvelle demande de congé acceptée - Impression requise";
+            $hrMessage = "Bonjour,\n\nUne demande de congé a été acceptée par le Directeur Général.\n\nDétails :\n- Employé : {$emailPer['nom']} {$emailPer['prenom']}\n- Période : {$demande['DateDepart']} au {$demande['DateRetour']}\n\n\nVeuillez préparer et imprimer la décision de congé pour cet employé.\n\nCordialement,";
+            if (!EnvoyerEmail($hrEmail, $hrSubject, nl2br($hrMessage))) {
+                error_log("Erreur d'envoi d'email à HR : " . $hrEmail);
+            }
+        } else {
+            error_log("Email HR non trouvé dans la base de données");
+        }
 }
 
 if(isset($_POST['rejeter'])) {
+    $reqDemande = $bdd->prepare('SELECT * FROM demande WHERE ID = ?');
+    $reqDemande->execute([$idDemande]);
+    $demande = $reqDemande->fetch();
     EtatDemande($_POST['rejeter'], -2);
     $cin1 = CinFromID($_POST['rejeter']);
     $emailPer = InfosPersonnel($cin1);
@@ -113,7 +134,12 @@ if(isset($_POST['rejeter'])) {
     error_log("Email non trouvé pour le CIN $cin1");
     } else {
     $subject = "Refus de votre demande de congé";
-    $message = "Bonjour,\n\nVotre demande de congé a été refusée par le Directeur Général.\n\nCordialement,";
+    $message = "Bonjour {$emailPer['prenom']} {$emailPer['nom']},\n\n" .
+                       "Nous sommes au regret de vous informer que votre demande de congé pour la période du {$demande['DateDepart']} " .
+                       "au {$demande['DateRetour']} ({$jours} jour" . ($jours > 1 ? "s" : "") . ") a été refusée par la Direction Générale.\n\n" .
+                       "Nous vous remercions pour votre compréhension.\n\n" .
+                       "Cordialement,\n" .
+                       "La Direction Générale";
 
     if (EnvoyerEmail($emailPer['email'], $subject, nl2br($message))) {
         // Email envoyé

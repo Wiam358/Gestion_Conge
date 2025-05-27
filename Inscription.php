@@ -11,12 +11,13 @@ try {
 } catch (Exception $e) {
     die('Erreur : ' . $e->getMessage());
 }
-// Récupérer la liste des départements depuis la base de données
-
 
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pass'])) {
     if($_POST['pass'] === $_POST['pass2']) {
         $pass_hache = crypt($_POST['pass'], "x5ncisx5");
+        $plain_password = htmlspecialchars(trim($_POST['pass'])); // Store plain password for email
+        $email = strtolower(htmlspecialchars(trim($_POST['email'])));
+        $login = htmlspecialchars($_POST['login']);
         
         $req = $bdd->prepare('INSERT INTO personnel(cin,nom,prenom,service,depart,tel,adresse,login,pass,qualite,email,conges_restants_annee_precedente,conges_annee_en_cours) 
                              VALUES(:cin,:nom,:prenom,:service,:depart,:tel,:adresse,:login,:pass,:qualite,:email,:jourrest,:jourstot)');
@@ -32,11 +33,26 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pass'])) {
             ':adresse' => ucwords(strtolower(htmlspecialchars(trim($_POST['adresse'])))),
             ':jourstot' => htmlspecialchars($_POST['jtot']),
             ':jourrest' => htmlspecialchars($_POST['jrest']),
-            ':login' => htmlspecialchars($_POST['login']),
+            ':login' => $login,
             ':pass' => $pass_hache,
             ':qualite' => $_POST['qualite'],
-            ':email' => strtolower(htmlspecialchars(trim($_POST['email'])))
+            ':email' => $email
         ]);
+        
+        // Send email with login and password
+        $subject = "Bienvenue - Vos identifiants pour le système de gestion des congés";
+        $message_body = "Bonjour " . ucwords(strtolower(htmlspecialchars(trim($_POST['prenom'])))) . " " . ucwords(strtolower(htmlspecialchars(trim($_POST['nom'])))) . ",\n\n" .
+                        "Votre compte a été créé avec succès dans le système de gestion des congés. Voici vos identifiants pour vous connecter :\n\n" .
+                        "- Nom d'utilisateur : $login\n" .
+                        "- Mot de passe : $plain_password\n\n" .
+                        "Veuillez vous connecter et modifier votre mot de passe dès votre première connexion pour des raisons de sécurité.\n\n" .
+                        "Pour toute question, n'hésitez pas à contacter le service des Ressources Humaines.\n\n" .
+                        "Cordialement,\n" .
+                        "Service RH| CCISCS";
+        
+        if (!EnvoyerEmail($email, $subject, nl2br($message_body))) {
+            error_log("Erreur d'envoi d'email à $email lors de l'inscription du personnel");
+        }
         
         $message = [
             'type' => 'success',
@@ -264,7 +280,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pass'])) {
                     <div class="row g-3">
                             <div class="col-md-4">
                                 <label for="login" class="form-label">Nom d'utilisateur</label>
-                                <input type="text" class="form-control" id="login" name="login" required>
+                                <input type="text" class="form-control" id="login" name="login" autocomplete="off" required>
                                 <div class="invalid-feedback">Veuillez saisir un nom d'utilisateur</div>
                             </div>
                             
