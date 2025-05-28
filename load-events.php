@@ -1,43 +1,62 @@
 <?php
 session_start();
 include('config.php');
-connexionBdd($bdd);
 
-// Vérifier si l'utilisateur est connecté
-$user_cin = isset($_SESSION['cin']) ? $_SESSION['cin'] : null;
+try {
+    // Initialiser la connexion à la base de données
+    connexionBdd($bdd);
 
-if ($user_cin) {
-    // Si utilisateur connecté, charger ses événements privés + tous les publics
-    $stmt = $bdd->prepare("SELECT 
-        id, 
-        title, 
-        description, 
-        start_datetime AS start, 
-        end_datetime AS end, 
-        event_type,
-        visibility,
-        background_color AS backgroundColor,
-        text_color AS textColor
-        FROM events 
-        WHERE visibility = 'public' OR created_by = ?");
-    $stmt->execute([$user_cin]);
-} else {
-    // Si utilisateur non connecté, charger seulement les événements publics
-    $stmt = $bdd->query("SELECT 
-        id, 
-        title, 
-        description, 
-        start_datetime AS start, 
-        end_datetime AS end, 
-        event_type,
-        visibility,
-        background_color AS backgroundColor,
-        text_color AS textColor
-        FROM events 
-        WHERE visibility = 'public'");
+    $user_cin = isset($_SESSION['cin']) ? $_SESSION['cin'] : null;
+
+    if ($user_cin) {
+        // Charger les événements publics et ceux créés par l'utilisateur
+        $stmt = $bdd->prepare("SELECT 
+            id, 
+            title, 
+            description, 
+            start_datetime AS start, 
+            end_datetime AS end, 
+            event_type,
+            visibility,
+            created_by,
+            background_color AS backgroundColor,
+            text_color AS textColor
+            FROM events 
+            WHERE visibility = 'public' OR created_by = ?");
+        $stmt->execute([$user_cin]);
+    } else {
+        // Charger uniquement les événements publics
+        $stmt = $bdd->query("SELECT 
+            id, 
+            title, 
+            description, 
+            start_datetime AS start, 
+            end_datetime AS end, 
+            event_type,
+            visibility,
+            created_by,
+            background_color AS backgroundColor,
+            text_color AS textColor
+            FROM events 
+            WHERE visibility = 'public'");
+    }
+
+    $events = $stmt->fetchAll();
+
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($events);
+
+} catch (PDOException $e) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'success' => false,
+        'error' => 'Erreur de base de données : ' . $e->getMessage()
+    ]);
+} catch (Exception $e) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage()
+    ]);
 }
-
-$events = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-header('Content-Type: application/json');
-echo json_encode($events);
+?>

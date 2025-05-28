@@ -79,7 +79,7 @@ if (isset($_POST['verify_cin'])) {
     }
 }
 
-// Step 2: Verify the code
+// Étape 2 : Vérification du code
 if (isset($_POST['verify_code'])) {
     $enteredCode = $_POST['verification_code'] ?? '';
     error_log("Code entré: " . $enteredCode);
@@ -87,6 +87,13 @@ if (isset($_POST['verify_code'])) {
     error_log("Session content in verify_code: " . print_r($_SESSION, true));
     
     if (!isset($_SESSION['verification_code'])) {
+        // Supprimer les variables de session et rediriger vers la page de connexion
+        unset($_SESSION['reset_cin']);
+        unset($_SESSION['verification_code']);
+        unset($_SESSION['reset_email']);
+        unset($_SESSION['code_verified']);
+        unset($_SESSION['show_verification_form']);
+        
         echo "<script>
     document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
@@ -95,14 +102,24 @@ if (isset($_POST['verify_code'])) {
             icon: 'error',
             confirmButtonColor: '#3CB371'
         }).then(() => {
+            document.getElementById('reset-modal').style.display = 'none';
             window.location.href = 'Connection.php';
         });
     });
 </script>";
+        // Redirection côté serveur en secours
+        header('Location: Connection.php');
         exit;
     }
     
     if (empty($enteredCode)) {
+        // Supprimer les variables de session et rediriger vers la page de connexion
+        unset($_SESSION['reset_cin']);
+        unset($_SESSION['verification_code']);
+        unset($_SESSION['reset_email']);
+        unset($_SESSION['code_verified']);
+        unset($_SESSION['show_verification_form']);
+        
         echo "<script>
     document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
@@ -110,9 +127,14 @@ if (isset($_POST['verify_code'])) {
             text: 'Veuillez entrer un code de vérification.',
             icon: 'error',
             confirmButtonColor: '#3CB371'
+        }).then(() => {
+            document.getElementById('reset-modal').style.display = 'none';
+            window.location.href = 'Connection.php';
         });
     });
 </script>";
+        // Redirection côté serveur en secours
+        header('Location: Connection.php');
         exit;
     }
     
@@ -131,17 +153,33 @@ if (isset($_POST['verify_code'])) {
         });
     });
 </script>";
+        // Redirection côté serveur en secours
+        header('Location: Connection.php?step=password');
+        exit;
     } else {
+        // Supprimer les variables de session et rediriger vers la page de connexion
+        unset($_SESSION['reset_cin']);
+        unset($_SESSION['verification_code']);
+        unset($_SESSION['reset_email']);
+        unset($_SESSION['code_verified']);
+        unset($_SESSION['show_verification_form']);
+        
         echo "<script>
     document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
             title: 'Erreur',
-            text: 'Code de vérification incorrect.',
+            text: 'Code de vérification incorrect. Veuillez recommencer le processus.',
             icon: 'error',
             confirmButtonColor: '#3CB371'
+        }).then(() => {
+            document.getElementById('reset-modal').style.display = 'none';
+            window.location.href = 'Connection.php';
         });
     });
 </script>";
+        // // Redirection côté serveur en secours
+        // header('Location: Connection.php');
+        // exit;
     }
 }
 
@@ -159,13 +197,23 @@ if (isset($_POST['update_password'])) {
     });
 </script>";
     } elseif ($_POST['new_password'] !== $_POST['confirm_password']) {
+         // Supprimer les variables de session et rediriger vers la page de connexion
+        unset($_SESSION['reset_cin']);
+        unset($_SESSION['verification_code']);
+        unset($_SESSION['reset_email']);
+        unset($_SESSION['code_verified']);
+        unset($_SESSION['show_verification_form']);
+        
         echo "<script>
     document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
             title: 'Erreur',
-            text: 'Les mots de passe ne correspondent pas.',
+            text: 'Code de vérification incorrect. Veuillez recommencer le processus.',
             icon: 'error',
             confirmButtonColor: '#3CB371'
+        }).then(() => {
+            document.getElementById('reset-modal').style.display = 'none';
+            window.location.href = 'Connection.php';
         });
     });
 </script>";

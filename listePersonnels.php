@@ -557,7 +557,7 @@ if(isset($_POST['newValue'])){
                     <input type="hidden" name="supprimer" id="deleteCin">
                     <div class="mb-3">
                         <label for="deleteReason" class="form-label">Veuillez indiquer la raison de l'archivage :</label>
-                        <textarea class="form-control" id="deleteReason" name="description" rows="3" required></textarea>
+                        <textarea class="form-control" id="deleteReason" name="description" rows="3"></textarea>
                     </div>
                     <p class="text-muted">Cette information sera enregistrée dans les archives.</p>
                 </div>

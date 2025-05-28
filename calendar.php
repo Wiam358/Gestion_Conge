@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -5,8 +6,9 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/google-calendar@6.1.8/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
     /* Style minimaliste pour le calendrier - Thème Seagreen */
     #calendar {
@@ -15,12 +17,15 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         padding: 15px;
         margin-top: 20px;
+        animation: fadeInUp 0.6s ease-out forwards;
+        opacity: 0;
+        transform: translateY(20px);
     }
 
     /* En-tête du calendrier */
     .fc-header-toolbar {
         padding: 10px 5px;
-        margin-bottom: 10px !important;
+        margin-bottom: 10px;
         background-color: #f8f9fa;
         border-radius: 8px;
     }
@@ -33,14 +38,18 @@
 
     /* Boutons de navigation */
     .fc-button {
-        background-color: #3cb371 !important;
-        border: none !important;
-        padding: 5px 10px !important;
-        font-size: 0.85em !important;
+        background-color: #3cb371;
+        border: none;
+        padding: 5px 10px;
+        font-size: 0.85em;
+        transition: all 0.3s ease;
+        transform: translateY(0);
     }
 
     .fc-button:hover {
-        background-color: #2e8b57 !important;
+        background-color: #2e8b57;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(46, 139, 87, 0.3);
     }
 
     /* Jours de la semaine */
@@ -53,18 +62,24 @@
 
     /* Cellules des jours */
     .fc-daygrid-day {
-        border-color: #e9ecef !important;
+        border-color: #e9ecef;
+        transition: transform 0.2s ease;
+    }
+
+    .fc-daygrid-day:hover {
+        transform: translateY(-2px);
     }
 
     .fc-daygrid-day-number {
         color: #495057;
         font-size: 0.85em;
-        padding: 2px !important;
+        padding: 2px;
     }
 
     /* Jour actuel */
     .fc-day-today {
-        background-color: #e8f5e9 !important;
+        background-color: #e8f5e9;
+        animation: pulseToday 2s;
     }
 
     /* Événements */
@@ -74,14 +89,20 @@
         border-radius: 2px;
         padding: 1px 3px;
         font-size: 0.8em;
-        margin: 0 1px 1px 0 !important;
+        margin: 0 1px 1px 0;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        animation: eventPopIn 0.4s ease-out forwards;
+        opacity: 0;
+        transform: scale(0.95);
     }
 
     .fc-event:hover {
         background-color: #2e8b57;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
 
-    /* Modal - Sans affecter le reste du dashboard */
+    /* Modal */
     .modal-header {
         background-color: #2e8b57;
         color: white;
@@ -107,6 +128,16 @@
         border-color: #d39e00;
     }
 
+    .modal-footer .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .modal-footer .btn-danger:hover {
+        background-color: #bb2d3b;
+        border-color: #bb2d3b;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .fc-header-toolbar {
@@ -121,41 +152,8 @@
             justify-content: space-between;
         }
     }
-    /* ANIMATIONS POUR LE CALENDRIER */
-    #calendar {
-        animation: fadeInUp 0.6s ease-out forwards;
-        opacity: 0;
-        transform: translateY(20px);
-    }
 
-    .fc-event {
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        animation: eventPopIn 0.4s ease-out forwards;
-        opacity: 0;
-        transform: scale(0.95);
-    }
-
-    .fc-daygrid-day:hover {
-        transform: translateY(-2px);
-        transition: transform 0.2s ease;
-    }
-
-    .fc-day-today {
-        animation: pulseToday 2s infinite;
-    }
-
-    /* Animation pour les boutons */
-    .fc-button {
-        transition: all 0.3s ease !important;
-        transform: translateY(0);
-    }
-
-    .fc-button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 8px rgba(46, 139, 87, 0.3) !important;
-    }
-
-    /* Animation au chargement */
+    /* Animations */
     @keyframes fadeInUp {
         from {
             opacity: 0;
@@ -167,7 +165,6 @@
         }
     }
 
-    /* Animation pour les événements */
     @keyframes eventPopIn {
         0% {
             opacity: 0;
@@ -183,7 +180,6 @@
         }
     }
 
-    /* Animation pour le jour actuel */
     @keyframes pulseToday {
         0% {
             box-shadow: 0 0 0 0 rgba(142, 212, 168, 0.7);
@@ -196,7 +192,6 @@
         }
     }
 
-    /* Animation au changement de vue */
     .fc-view-harness {
         transition: opacity 0.3s ease;
     }
@@ -215,25 +210,10 @@
             transform: translateY(0);
         }
     }
-
-    /* Animation pour les événements au survol */
-    .fc-event:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-    .modal-footer .btn-danger {
-        background-color: #dc3545;
-        border-color: #dc3545;
-    }
-
-    .modal-footer .btn-danger:hover {
-        background-color: #bb2d3b;
-        border-color: #bb2d3b;
-    }
   </style>
 </head>
 <body>
-<h2 class="mb-4 fw-bold" style="color: var(--primary-color);"><i class="bi bi-calendar-fill"></i> Calendrier</h2>
+  <h2 class="mb-4 fw-bold" style="color: #2e8b57;"><i class="bi bi-calendar-fill"></i> Calendrier</h2>
   <div id="calendar"></div>
 
   <!-- Modal d'ajout d'événement -->
@@ -267,7 +247,6 @@
                 <label for="addEventDate" class="form-label">Date de début</label>
                 <input type="date" class="form-control" id="addEventDate" required>
               </div>
-
               <div class="col-md-6">
                 <label for="addEventEndDate" class="form-label">Date de fin</label>
                 <input type="date" class="form-control" id="addEventEndDate" required>
@@ -278,7 +257,6 @@
                 <label for="addStartTime" class="form-label">Heure de début</label>
                 <input type="time" class="form-control" id="addStartTime" required>
               </div>
-
               <div class="mb-3">
                 <label for="addEndTime" class="form-label">Heure de fin</label>
                 <input type="time" class="form-control" id="addEndTime" required>
@@ -293,7 +271,6 @@
                 </select>
               </div>
             </div>
-
             <div class="mb-3">
               <label for="addEventDescription" class="form-label">Description</label>
               <textarea class="form-control" id="addEventDescription" rows="3"></textarea>
@@ -339,7 +316,6 @@
                 <label for="editEventDate" class="form-label">Date de début</label>
                 <input type="date" class="form-control" id="editEventDate" required>
               </div>
-
               <div class="col-md-6">
                 <label for="editEventEndDate" class="form-label">Date de fin</label>
                 <input type="date" class="form-control" id="editEventEndDate" required>
@@ -350,7 +326,6 @@
                 <label for="editStartTime" class="form-label">Heure de début</label>
                 <input type="time" class="form-control" id="editStartTime" required>
               </div>
-
               <div class="mb-3">
                 <label for="editEndTime" class="form-label">Heure de fin</label>
                 <input type="time" class="form-control" id="editEndTime" required>
@@ -365,7 +340,6 @@
                 </select>
               </div>
             </div>
-
             <div class="mb-3">
               <label for="editEventDescription" class="form-label">Description</label>
               <textarea class="form-control" id="editEventDescription" rows="3"></textarea>
@@ -382,16 +356,23 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script>
+    // Vérifier si Bootstrap est chargé
+    if (typeof bootstrap === 'undefined') {
+      console.error('Bootstrap non chargé');
+      Swal.fire('Erreur', 'Problème de chargement des dépendances.', 'error');
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
       let calendarEl = document.getElementById('calendar');
       let currentEventId = null;
+      const utilisateurConnecte = '<?php echo htmlspecialchars($_SESSION["cin"] ?? "", ENT_QUOTES, "UTF-8"); ?>';
 
       let calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'fr',
         selectable: true,
+        // Note: Stocker la clé API côté serveur pour plus de sécurité
         googleCalendarApiKey: 'AIzaSyAtqhp1afQG7EiPT_U5DeBFfcqlW11tcM4',
 
         eventSources: [
@@ -420,20 +401,34 @@
           new bootstrap.Modal(document.getElementById('addEventModal')).show();
         },
         eventClick: function(info) {
-          currentEventId = info.event.id;
-          document.getElementById('editEventTitle').value = info.event.title;
-          document.getElementById('editEventDescription').value = info.event.extendedProps.description || '';
-          document.getElementById('editEventType').value = info.event.extendedProps.event_type || 'autre';
-          document.getElementById('editEventVisibility').value = info.event.extendedProps.visibility || 'public';
+          const event = info.event;
+          const createdBy = event.extendedProps.created_by;
+          const currentUser = utilisateurConnecte;
+
+          if (createdBy !== currentUser) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Accès refusé',
+              text: 'Seul le créateur peut modifier cet événement.',
+              confirmButtonColor: '#d33'
+            });
+            return;
+          }
+
+          currentEventId = event.id;
+          document.getElementById('editEventTitle').value = event.title;
+          document.getElementById('editEventDescription').value = event.extendedProps.description || '';
+          document.getElementById('editEventType').value = event.extendedProps.event_type || 'autre';
+          document.getElementById('editEventVisibility').value = event.extendedProps.visibility || 'public';
           
-          const startDate = new Date(info.event.start);
-          const endDate = info.event.end ? new Date(info.event.end) : new Date(info.event.start);
+          const start = new Date(event.start);
+          const end = event.end ? new Date(event.end) : new Date(event.start);
           
-          document.getElementById('editEventDate').value = startDate.toISOString().split('T')[0];
-          document.getElementById('editEventEndDate').value = endDate.toISOString().split('T')[0];
-          document.getElementById('editStartTime').value = startDate.toTimeString().substring(0, 5);
-          document.getElementById('editEndTime').value = endDate.toTimeString().substring(0, 5);
-          
+          document.getElementById('editEventDate').value = start.toISOString().split('T')[0];
+          document.getElementById('editEventEndDate').value = end.toISOString().split('T')[0];
+          document.getElementById('editStartTime').value = start.toTimeString().substring(0, 5);
+          document.getElementById('editEndTime').value = end.toTimeString().substring(0, 5);
+
           new bootstrap.Modal(document.getElementById('editEventModal')).show();
         }
       });
@@ -444,14 +439,19 @@
       document.getElementById('addEventForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
-        const title = document.getElementById('addEventTitle').value;
-        const description = document.getElementById('addEventDescription').value;
+        const title = document.getElementById('addEventTitle').value.trim();
+        const description = document.getElementById('addEventDescription').value.trim();
         const eventType = document.getElementById('addEventType').value;
         const visibility = document.getElementById('addEventVisibility').value;
         const startDate = document.getElementById('addEventDate').value;
         const endDate = document.getElementById('addEventEndDate').value;
         const startTime = document.getElementById('addStartTime').value;
         const endTime = document.getElementById('addEndTime').value;
+
+        if (!title || !startDate || !endDate || !startTime || !endTime || !eventType) {
+          Swal.fire('Erreur', 'Veuillez remplir tous les champs obligatoires', 'error');
+          return;
+        }
 
         const startDateTime = `${startDate}T${startTime}`;
         const endDateTime = `${endDate}T${endTime}`;
@@ -477,24 +477,47 @@
             visibility: visibility,
           })
         })
-        .then(res => res.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Erreur réseau');
+          }
+          return response.json();
+        })
         .then(data => {
           if (data.success) {
+            calendar.addEvent({
+              id: data.event.id,
+              title: data.event.title,
+              start: data.event.start,
+              end: data.event.end,
+              extendedProps: {
+                description: data.event.description,
+                event_type: data.event.event_type,
+                created_by: data.event.created_by,
+                visibility: data.event.visibility
+              },
+              backgroundColor: data.event.backgroundColor,
+              textColor: data.event.textColor
+            });
+
             Swal.fire({
               icon: 'success',
               title: 'Succès',
               text: 'Événement ajouté avec succès !'
             });
-            calendar.refetchEvents();
+            
             document.getElementById('addEventForm').reset();
             bootstrap.Modal.getInstance(document.getElementById('addEventModal')).hide();
           } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Erreur',
-              text: "Erreur lors de l'ajout de l'événement."
-            });
+            throw new Error(data.error || "Erreur lors de l'ajout de l'événement");
           }
+        })
+        .catch(error => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: error.message
+          });
         });
       });
 
@@ -502,8 +525,8 @@
       document.getElementById('editEventForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const title = document.getElementById('editEventTitle').value;
-        const description = document.getElementById('editEventDescription').value;
+        const title = document.getElementById('editEventTitle').value.trim();
+        const description = document.getElementById('editEventDescription').value.trim();
         const eventType = document.getElementById('editEventType').value;
         const visibility = document.getElementById('editEventVisibility').value;
         const startDate = document.getElementById('editEventDate').value;
@@ -511,8 +534,22 @@
         const startTime = document.getElementById('editStartTime').value;
         const endTime = document.getElementById('editEndTime').value;
 
+        if (!title || !startDate || !endDate || !startTime || !endTime || !eventType) {
+          Swal.fire('Erreur', 'Veuillez remplir tous les champs obligatoires', 'error');
+          return;
+        }
+
         const startDateTime = `${startDate}T${startTime}`;
         const endDateTime = `${endDate}T${endTime}`;
+
+        if (new Date(startDateTime) > new Date(endDateTime)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: 'La date/heure de fin doit être après celle de début.'
+          });
+          return;
+        }
 
         fetch('update-event.php', {
           method: 'POST',
@@ -534,12 +571,14 @@
             calendar.refetchEvents();
             bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
           } else {
-            Swal.fire('Erreur', data.error || "Erreur lors de la modification", 'error');
+            throw new Error(data.error || "Erreur lors de la modification");
           }
+        })
+        .catch(error => {
+          Swal.fire('Erreur', error.message, 'error');
         });
       });
 
-      // Gestion de la suppression d'événement
       document.getElementById('deleteBtn').addEventListener('click', function() {
         Swal.fire({
           title: 'Confirmer la suppression',
@@ -553,18 +592,35 @@
           if (result.isConfirmed) {
             fetch('delete-event.php', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
               body: JSON.stringify({ id: currentEventId })
             })
-            .then(res => res.json())
+            .then(response => {
+              const contentType = response.headers.get('content-type');
+              if (!contentType || !contentType.includes('application/json')) {
+                return response.text().then(text => {
+                  throw new Error(`Réponse inattendue: ${text}`);
+                });
+              }
+              return response.json();
+            })
             .then(data => {
               if (data.success) {
-                Swal.fire('Supprimé!', 'L\'événement a été supprimé.', 'success');
-                calendar.refetchEvents();
+                const event = calendar.getEventById(currentEventId);
+                if (event) event.remove();
+                
+                Swal.fire('Succès!', data.message || 'Événement supprimé', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
               } else {
-                Swal.fire('Erreur', data.error || "Erreur lors de la suppression", 'error');
+                throw new Error(data.error || "Échec de la suppression");
               }
+            })
+            .catch(error => {
+              console.error('Erreur:', error);
+              Swal.fire('Erreur', error.message, 'error');
             });
           }
         });

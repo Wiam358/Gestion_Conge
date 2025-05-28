@@ -243,7 +243,7 @@
                         <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
                         <div class="stat-value">
                             <?php 
-                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 1 AND cin = ? AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
+                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 2 AND cin = ? AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
                             $req->execute([$_SESSION['cin']]);
                             echo $req->fetchColumn();
                             ?>
