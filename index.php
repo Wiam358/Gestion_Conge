@@ -479,7 +479,7 @@ $reponse=InfosPersonnel($_SESSION['cin']);
                                 
                                 <div class="mb-3">
                                     <label for="login" class="form-label">Nom d'utilisateur</label>
-                                    <input type="text" class="form-control form-control-lg" name="login" id="login" value="<?= $infos['login'] ?>" required>
+                                    <input type="text" autocomplete="off" class="form-control form-control-lg" name="login" id="login" value="<?= $infos['login'] ?>" required>
                                 </div>
                                 
                                 <div class="row">
@@ -505,7 +505,7 @@ $reponse=InfosPersonnel($_SESSION['cin']);
                                     </div>
                                     <div class="col-md-6">
                                         <label for="email" class="form-label">Email</label>
-                                        <input type="email" class="form-control form-control-lg" name="email" id="email" value="<?= $infos['email'] ?>" required>
+                                        <input type="email" class="form-control form-control-lg" autocomplete="off" name="email" id="email" value="<?= $infos['email'] ?>" required>
                                     </div>
                                 </div>
                                 

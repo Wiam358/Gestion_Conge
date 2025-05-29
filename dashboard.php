@@ -243,12 +243,12 @@
                         <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
                         <div class="stat-value">
                             <?php 
-                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 2 AND cin = ? AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
+                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 2 AND cin = ? AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
                             $req->execute([$_SESSION['cin']]);
                             echo $req->fetchColumn();
                             ?>
                         </div>
-                        <div class="stat-label">Approuvées ce mois</div>
+                        <div class="stat-label">Approuvées cette année</div>
                     </div>
                     
                     <!-- Carte 3: Demandes refusées -->
@@ -256,12 +256,12 @@
                         <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
                         <div class="stat-value">
                             <?php 
-                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = -2 AND cin = ? AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
+                            $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = -2 AND cin = ? AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
                             $req->execute([$_SESSION['cin']]);
                             echo $req->fetchColumn();
                             ?>
                         </div>
-                        <div class="stat-label">Refusées ce mois</div>
+                        <div class="stat-label">Refusées cette année</div>
                     </div>
                     
                     <!-- Carte 4: Solde de congés -->
@@ -319,7 +319,6 @@
                                                  JOIN personnel p ON d.cin = p.cin 
                                                  WHERE d.Etat = 1 AND p.depart = 
                                                  (SELECT depart FROM personnel WHERE cin = ?)
-                                                 AND MONTH(d.DateDemande) = MONTH(CURRENT_DATE()) 
                                                  AND YEAR(d.DateDemande) = YEAR(CURRENT_DATE())");
                             $req->execute([$_SESSION['cin']]);
                             echo $req->fetchColumn();
@@ -418,13 +417,12 @@
                         <div class="stat-value">
                             <?php 
                             $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = 2 
-                                                 AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) 
                                                  AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
                             $req->execute();
                             echo $req->fetchColumn();
                             ?>
                         </div>
-                        <div class="stat-label">Congés validés ce mois</div>
+                        <div class="stat-label">Congés validés cette année</div>
                     </div>
                     
                     <!-- Carte 2: Vue globale des congés refusés -->
@@ -433,13 +431,12 @@
                         <div class="stat-value">
                             <?php 
                             $req = $bdd->prepare("SELECT COUNT(*) FROM demande WHERE Etat = -2 
-                                                 AND MONTH(DateDemande) = MONTH(CURRENT_DATE()) 
                                                  AND YEAR(DateDemande) = YEAR(CURRENT_DATE())");
                             $req->execute();
                             echo $req->fetchColumn();
                             ?>
                         </div>
-                        <div class="stat-label">Congés refusés ce mois</div>
+                        <div class="stat-label">Congés refusés cette année</div>
                     </div>
                     
                     <!-- Carte 3: Alertes départements -->
@@ -491,6 +488,7 @@
 $qualite = $_SESSION['qualite'];
 $departSession = $_SESSION['depart'];
 
+// Modification: CD peut voir les stats (suppression de la condition || $qualite === 'CD')
 if ($qualite === 'DG' || $qualite === 'CD'):
 
     // Requête avec filtre si Chef de Département
@@ -503,8 +501,11 @@ if ($qualite === 'DG' || $qualite === 'CD'):
     -- Demandes refusées (Etat = -2)
     SUM(CASE WHEN d.Etat = -2 THEN 1 ELSE 0 END) AS refuses,
 
-    -- En attente : si SAL -> Etat = 0, si CD/DG/RH -> Etat = 1
-    SUM(CASE WHEN  d.Etat = 0 THEN 1 ELSE 0 END) AS en_attente,
+-- En attente : SAL=état 1, autres=état 0
+    SUM(CASE WHEN (
+        (p.qualite = 'SAL' AND d.Etat = 1) OR 
+        (p.qualite IN ('DG', 'CD', 'RH') AND d.Etat = 0)
+    ) THEN 1 ELSE 0 END) AS en_attente,
 
     -- Alertes : + de 2 demandes validées pour la même date de départ dans le même département
     COUNT(DISTINCT CASE 
@@ -515,7 +516,6 @@ if ($qualite === 'DG' || $qualite === 'CD'):
             WHERE p2.depart = p.depart
               AND d2.Etat = 2
               AND d2.DateDepart = d.DateDepart
-              AND d2.DateRetour = d.DateRetour
               AND d2.DateRetour >= CURRENT_DATE()
             GROUP BY d2.DateDepart
             HAVING COUNT(*) > 2
@@ -524,15 +524,14 @@ if ($qualite === 'DG' || $qualite === 'CD'):
 
 FROM personnel p
 LEFT JOIN demande d ON p.cin = d.cin
-GROUP BY p.depart;
-";
+WHERE 1=1 ";
 
-    // Si c’est un chef de département, filtrer
+    // Si c'est un chef de département, filtrer par son département
     if ($qualite === 'CD') {
-        $sql .= "WHERE p.depart = :depart ";
+        $sql .= " AND p.depart = :depart ";
     }
 
-    $sql .= "GROUP BY p.depart";
+    $sql .= " GROUP BY p.depart";
 
     $req = $bdd->prepare($sql);
 
@@ -541,38 +540,38 @@ GROUP BY p.depart;
     }
 
     $req->execute();
-    ?>
+?>
 
-    <div class="table-responsive mb-4">
-        <table class="table table-striped table-hover">
-            <thead class="table-light">
+<div class="table-responsive mb-4">
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Département</th>
+                <th>Congés validés</th>
+                <th>Congés refusés</th>
+                <th>En attente</th>
+                <th>Alertes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($row = $req->fetch()): ?>
                 <tr>
-                    <th>Département</th>
-                    <th>Congés validés</th>
-                    <th>Congés refusés</th>
-                    <th>En attente</th>
-                    <th>Alertes</th>
+                    <td><?= htmlspecialchars($row['depart']) ?></td>
+                    <td><?= $row['valides'] ?></td>
+                    <td><?= $row['refuses'] ?></td>
+                    <td><?= $row['en_attente'] ?></td>
+                    <td>
+                        <?php if ($row['alertes'] > 0): ?>
+                            <span class="badge bg-warning text-dark"><?= $row['alertes'] ?> conflit(s)</span>
+                        <?php else: ?>
+                            <span class="badge bg-success">OK</span>
+                        <?php endif; ?>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                <?php while ($row = $req->fetch()): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['depart']) ?></td>
-                        <td><?= $row['valides'] ?></td>
-                        <td><?= $row['refuses'] ?></td>
-                        <td><?= $row['en_attente'] ?></td>
-                        <td>
-                            <?php if ($row['alertes'] > 0): ?>
-                                <span class="badge bg-warning text-dark"><?= $row['alertes'] ?> conflit(s)</span>
-                            <?php else: ?>
-                                <span class="badge bg-success">OK</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
-    </div>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
+</div>
 
 <?php elseif ($qualite === 'SAL'): ?>
     <div class="alert alert-info">Cette section est réservée aux chefs de département et au directeur général.</div>
