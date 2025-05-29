@@ -522,39 +522,39 @@
       });
 
       // Gestion de la modification d'événement
-      document.getElementById('editEventForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+document.getElementById('editEventForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-        const title = document.getElementById('editEventTitle').value.trim();
-        const description = document.getElementById('editEventDescription').value.trim();
-        const eventType = document.getElementById('editEventType').value;
-        const visibility = document.getElementById('editEventVisibility').value;
-        const startDate = document.getElementById('editEventDate').value;
-        const endDate = document.getElementById('editEventEndDate').value;
-        const startTime = document.getElementById('editStartTime').value;
-        const endTime = document.getElementById('editEndTime').value;
+    const title = document.getElementById('editEventTitle').value.trim();
+    const description = document.getElementById('editEventDescription').value.trim();
+    const eventType = document.getElementById('editEventType').value;
+    const visibility = document.getElementById('editEventVisibility').value;
+    const startDate = document.getElementById('editEventDate').value;
+    const endDate = document.getElementById('editEventEndDate').value;
+    const startTime = document.getElementById('editStartTime').value;
+    const endTime = document.getElementById('editEndTime').value;
 
-        if (!title || !startDate || !endDate || !startTime || !endTime || !eventType) {
-          Swal.fire('Erreur', 'Veuillez remplir tous les champs obligatoires', 'error');
-          return;
-        }
+    if (!title || !startDate || !endDate || !startTime || !endTime || !eventType) {
+        Swal.fire('Erreur', 'Veuillez remplir tous les champs obligatoires', 'error');
+        return;
+    }
 
-        const startDateTime = `${startDate}T${startTime}`;
-        const endDateTime = `${endDate}T${endTime}`;
+    const startDateTime = `${startDate}T${startTime}`;
+    const endDateTime = `${endDate}T${endTime}`;
 
-        if (new Date(startDateTime) > new Date(endDateTime)) {
-          Swal.fire({
+    if (new Date(startDateTime) > new Date(endDateTime)) {
+        Swal.fire({
             icon: 'error',
             title: 'Erreur',
             text: 'La date/heure de fin doit être après celle de début.'
-          });
-          return;
-        }
+        });
+        return;
+    }
 
-        fetch('update-event.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+    fetch('update-event.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
             id: currentEventId,
             title: title,
             description: description,
@@ -562,22 +562,55 @@
             start: startDateTime,
             end: endDateTime,
             visibility: visibility,
-          })
         })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Mettre à jour l'événement dans FullCalendar
+            const event = calendar.getEventById(currentEventId);
+            if (event) {
+                // Supprimer l'événement existant
+                event.remove();
+                
+                // Ajouter l'événement mis à jour
+                calendar.addEvent({
+                    id: currentEventId,
+                    title: title,
+                    start: startDateTime,
+                    end: endDateTime,
+                    extendedProps: {
+                        description: description,
+                        event_type: eventType,
+                        visibility: visibility,
+                        created_by: utilisateurConnecte
+                    },
+                    backgroundColor: data.event?.backgroundColor || getEventColor(eventType)[0],
+                    textColor: data.event?.textColor || getEventColor(eventType)[1]
+                });
+            }
+
             Swal.fire('Succès', 'Événement modifié avec succès!', 'success');
-            calendar.refetchEvents();
             bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
-          } else {
+        } else {
             throw new Error(data.error || "Erreur lors de la modification");
-          }
-        })
-        .catch(error => {
-          Swal.fire('Erreur', error.message, 'error');
-        });
-      });
+        }
+    })
+    .catch(error => {
+        Swal.fire('Erreur', error.message, 'error');
+    });
+});
+
+// Fonction pour obtenir les couleurs en fonction du type d'événement
+function getEventColor(eventType) {
+    const colors = {
+        'congé': ['#3cb371', '#ffffff'],
+        'formation': ['#ffa500', '#000000'],
+        'réunion': ['#9370db', '#ffffff'],
+        'autre': ['#3788d8', '#ffffff']
+    };
+    return colors[eventType] || ['#3788d8', '#ffffff'];
+}
 
       document.getElementById('deleteBtn').addEventListener('click', function() {
         Swal.fire({

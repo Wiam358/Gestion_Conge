@@ -3,42 +3,104 @@ session_start();
 include_once('config.php');
 connexionBdd($bdd);
 verifySession();
-if(isset($_POST['newValue'])){
-try
-{
-$bdd = new PDO('mysql:host=localhost;dbname=congetest','root','');
-}catch (Exception $e)
-{die('Erreur : ' . $e->getMessage());}
 
-if(  isset($_POST['pass']) & isset($_POST['pass2']) & isset($_POST['login']) & isset($_POST['tel']) & isset($_POST['adresse']) & isset($_POST['email']) )
-{
-	if ($_POST['pass']==$_POST['pass2']) {
-		$pass_hache=crypt($_POST['pass'],"x5ncisx5");
-$req = $bdd->prepare('UPDATE  personnel set tel=:ptel,adresse=:padresse,login=:plogin,pass=:ppass,email=:pemail WHERE cin=\'' . $_SESSION['cin']. '\'');
-$req->execute(array(
-':ptel' => htmlspecialchars($_POST['tel']),
-':padresse' => ucfirst(strtolower(htmlspecialchars(trim($_POST['adresse'])))),
-':plogin' => htmlspecialchars(trim($_POST['login'])),
-':ppass' => $pass_hache,
-':pemail' => htmlspecialchars(trim($_POST['email']))
-));
-// Après une modification réussie
-$_SESSION['success_message'] = "Vos informations ont été modifiées avec succès.";
-header("Location: index.php"); // ou index.php si c’est ta page d’accueil
-exit();
+if (isset($_POST['newValue'])) {
+    try {
+        $bdd = new PDO('mysql:host=localhost;dbname=congetest', 'root', '');
+        $bdd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (Exception $e) {
+        die('Erreur : ' . $e->getMessage());
+    }
 
+    if (isset($_POST['pass']) && isset($_POST['pass2']) && isset($_POST['login']) && isset($_POST['tel']) && isset($_POST['adresse']) && isset($_POST['email'])) {
+        if ($_POST['pass'] == $_POST['pass2']) {
+            $pass_hache = crypt($_POST['pass'], "x5ncisx5");
 
+            // Handle image upload or deletion
+            $profile_image = null;
+            $infos = InfosPersonnel($_SESSION['cin']); // Get current user info
+            if (isset($_POST['delete_image']) && $_POST['delete_image'] == '1' && !empty($infos['profile_image']) && file_exists($infos['profile_image'])) {
+                unlink($infos['profile_image']); // Delete the existing image
+            } elseif (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == UPLOAD_ERR_OK) {
+                $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+                $max_size = 2 * 1024 * 1024; // 2MB
+                $file_type = $_FILES['profile_image']['type'];
+                $file_size = $_FILES['profile_image']['size'];
+                $file_tmp = $_FILES['profile_image']['tmp_name'];
+                $file_ext = strtolower(pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION));
+                $cin_safe = preg_replace('/[^a-zA-Z0-9]/', '', $_SESSION['cin']);
+                $file_name = 'profile_' . $cin_safe . '.' . $file_ext;
+                $upload_dir = 'uploads/';
+                $upload_path = $upload_dir . $file_name;
+
+                // Validate file
+                if (!in_array($file_type, $allowed_types)) {
+                    $_SESSION['error_message'] = "Type de fichier non autorisé. Utilisez JPG, PNG ou GIF.";
+                    header("Location: index.php");
+                    exit();
+                }
+                if ($file_size > $max_size) {
+                    $_SESSION['error_message'] = "La taille du fichier dépasse 2 Mo.";
+                    header("Location: index.php");
+                    exit();
+                }
+
+                // Create uploads directory if it doesn't exist
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0755, true);
+                }
+
+                // Move the uploaded file
+                if (move_uploaded_file($file_tmp, $upload_path)) {
+                    $profile_image = $upload_path;
+                    // Delete old image if it exists
+                    if (!empty($infos['profile_image']) && file_exists($infos['profile_image'])) {
+                        unlink($infos['profile_image']);
+                    }
+                } else {
+                    $_SESSION['error_message'] = "Échec du téléchargement de l'image.";
+                    header("Location: index.php");
+                    exit();
+                }
+            }
+
+            // Prepare SQL update
+            $sql = 'UPDATE personnel SET tel = :ptel, adresse = :padresse, login = :plogin, pass = :ppass, email = :pemail';
+            if ($profile_image || isset($_POST['delete_image']) && $_POST['delete_image'] == '1') {
+                $sql .= ', profile_image = :pimage';
+            }
+            $sql .= ' WHERE cin = :cin';
+
+            $req = $bdd->prepare($sql);
+            $params = [
+                ':ptel' => htmlspecialchars($_POST['tel']),
+                ':padresse' => ucfirst(strtolower(htmlspecialchars(trim($_POST['adresse'])))),
+                ':plogin' => htmlspecialchars(trim($_POST['login'])),
+                ':ppass' => $pass_hache,
+                ':pemail' => htmlspecialchars(trim($_POST['email'])),
+                ':cin' => $_SESSION['cin']
+            ];
+            if ($profile_image || isset($_POST['delete_image']) && $_POST['delete_image'] == '1') {
+                $params[':pimage'] = $profile_image; // Will be NULL if image is deleted
+            }
+
+            if ($req->execute($params)) {
+                $_SESSION['success_message'] = "Vos informations ont été modifiées avec succès.";
+            } else {
+                $_SESSION['error_message'] = "Échec de la modification. Veuillez réessayer.";
+            }
+        } else {
+            $_SESSION['error_message'] = "Les mots de passe ne correspondent pas.";
+        }
+    } else {
+        $_SESSION['error_message'] = "Tous les champs requis doivent être remplis.";
+    }
+    header("Location: index.php");
+    exit();
 }
-else{
-	$_SESSION['error_message'] = "Échec de la modification. Veuillez réessayer.";
-header("Location: index.php");
-exit();
 
-} 
-}
-}
-if(isset($_SESSION['cin'])){
-$reponse=InfosPersonnel($_SESSION['cin']);
+if (isset($_SESSION['cin'])) {
+    $infos = InfosPersonnel($_SESSION['cin']);
 }
 ?>
 <html>
@@ -165,6 +227,34 @@ $reponse=InfosPersonnel($_SESSION['cin']);
             color: #6c757d;
         }
         
+        /* Profile image styling */
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        /* File input styling */
+        input[type="file"] {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: var(--seagreen-primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background: var(--seagreen-dark);
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 1199px) {
             body {
@@ -240,10 +330,10 @@ $reponse=InfosPersonnel($_SESSION['cin']);
                 width: 100%;
             }
         }
+        
         @media (max-width: 600px) {
             body {
                 margin-left: 0;
-                
             }
         }
         
@@ -275,7 +365,6 @@ $reponse=InfosPersonnel($_SESSION['cin']);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        /* En-tête compact */
         #modifierInfosModal .modal-header {
             background: #3CB371;
             color: white;
@@ -299,7 +388,6 @@ $reponse=InfosPersonnel($_SESSION['cin']);
             margin: -0.5rem -0.5rem -0.5rem auto;
         }
 
-        /* Corps fluide */
         #modifierInfosModal .modal-body {
             padding: 1.2rem;
             max-height: 60vh;
@@ -326,7 +414,6 @@ $reponse=InfosPersonnel($_SESSION['cin']);
             box-shadow: 0 0 0 2px rgba(60, 179, 113, 0.2);
         }
 
-        /* Positionnement icônes mot de passe */
         #modifierInfosModal .position-relative {
             position: relative;
         }
@@ -340,7 +427,6 @@ $reponse=InfosPersonnel($_SESSION['cin']);
             font-size: 0.9rem;
         }
 
-        /* Pied de page minimal */
         #modifierInfosModal .modal-footer {
             padding: 0.8rem 1.2rem;
             border-top: 1px solid #f0f0f0;
@@ -367,7 +453,6 @@ $reponse=InfosPersonnel($_SESSION['cin']);
             background: #2E8B57;
         }
 
-        /* Animation fluide */
         .modal.fade .modal-dialog {
             transition: transform 0.15s ease-out;
             transform: translateY(-10px);
@@ -377,7 +462,6 @@ $reponse=InfosPersonnel($_SESSION['cin']);
             transform: none;
         }
 
-        /* Scrollbar discrète */
         #modifierInfosModal .modal-body::-webkit-scrollbar {
             width: 6px;
         }
@@ -386,20 +470,19 @@ $reponse=InfosPersonnel($_SESSION['cin']);
             background: #e0e0e0;
             border-radius: 3px;
         }
+
         @media (max-width: 992px) {
             body {
                 margin-left: 0;
-                
             }
         }
     </style>
-
 </head>
 <body>
     <?php include_once('header.php'); ?>
     
     <div class="profile-container animate__animated animate__fadeIn">
-        <?php if(isset($_SESSION['cin']) && isset($_SESSION['login'])): ?>
+        <?php if (isset($_SESSION['cin']) && isset($_SESSION['login'])): ?>
             <?php $infos = InfosPersonnel($_SESSION['cin']); ?>
             
             <div class="row justify-content-center">
@@ -412,8 +495,12 @@ $reponse=InfosPersonnel($_SESSION['cin']);
                         <div class="card-body p-4">
                             <div class="d-flex flex-column flex-md-row align-items-center mb-4">
                                 <div class="me-md-4 mb-3 mb-md-0">
-                                    <div class="bg-white p-3 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
-                                        <i class="bi bi-person-fill text-seagreen" style="font-size: 3rem;"></i>
+                                    <div class="bg-white p-3 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 120px; height: 120px; overflow: hidden;">
+                                        <?php if (!empty($infos['profile_image']) && file_exists($infos['profile_image'])): ?>
+                                            <img src="<?= htmlspecialchars($infos['profile_image']) ?>" alt="Profile Image" class="profile-image">
+                                        <?php else: ?>
+                                            <i class="bi bi-person-fill text-seagreen" style="font-size: 3rem;"></i>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                                 <div class="flex-grow-1 text-center text-md-start">
@@ -424,7 +511,7 @@ $reponse=InfosPersonnel($_SESSION['cin']);
                                             <i class="bi bi-person-vcard"></i> <?= $_SESSION['cin'] ?>
                                         </span>
                                         <span class="info-badge">
-                                            <i class="bi bi-calendar"></i> <?= $infos['conges_restants_annee_precedente']  + $infos['conges_annee_en_cours'] ?>
+                                            <i class="bi bi-calendar"></i> <?= $infos['conges_restants_annee_precedente'] + $infos['conges_annee_en_cours'] ?>
                                         </span>
                                     </div>
                                 </div>
@@ -471,9 +558,9 @@ $reponse=InfosPersonnel($_SESSION['cin']);
                             <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Modifier mon profil</h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form method="post" action="index.php">
+                        <form method="post" action="index.php" enctype="multipart/form-data">
                             <div class="modal-body">
-                                <?php if(isset($message)): ?>
+                                <?php if (isset($message)): ?>
                                     <div class="alert alert-success"><?= $message ?></div>
                                 <?php endif; ?>
                                 
@@ -483,14 +570,11 @@ $reponse=InfosPersonnel($_SESSION['cin']);
                                 </div>
                                 
                                 <div class="row">
-                                    <!-- Colonne Mot de passe -->
                                     <div class="col-md-6 mb-3 position-relative">
                                         <label for="password" class="form-label">Mot de passe</label>
                                         <input type="password" class="form-control form-control-lg" name="pass" id="password" required>
                                         <i class="fas fa-eye password-toggle" id="togglePassword"></i>
                                     </div>
-                                    
-                                    <!-- Colonne Confirmation -->
                                     <div class="col-md-6 mb-3 position-relative">
                                         <label for="confirmPassword" class="form-label">Confirmation</label>
                                         <input type="password" class="form-control form-control-lg" name="pass2" id="confirmPassword" required>
@@ -513,6 +597,18 @@ $reponse=InfosPersonnel($_SESSION['cin']);
                                     <label for="adresse" class="form-label">Adresse</label>
                                     <input type="text" class="form-control form-control-lg" name="adresse" id="adresse" value="<?= $infos['adresse'] ?>" required>
                                 </div>
+                                
+                                <div class="mb-3">
+                                    <label for="profile_image" class="form-label">Photo de profil</label>
+                                    <input type="file" class="form-control form-control-lg" name="profile_image" id="profile_image" accept="image/jpeg,image/png,image/gif">
+                                </div>
+                                
+                                <?php if (!empty($infos['profile_image']) && file_exists($infos['profile_image'])): ?>
+                                    <div class="mb-3">
+                                        <label class="form-label">Supprimer la photo de profil</label>
+                                        <input type="checkbox" name="delete_image" value="1"> Supprimer
+                                    </div>
+                                <?php endif; ?>
                                 
                                 <input type="hidden" name="newValue" value="1">
                             </div>
@@ -549,29 +645,48 @@ $reponse=InfosPersonnel($_SESSION['cin']);
             confirmPasswordInput.setAttribute('type', type);
             this.classList.toggle('fa-eye-slash');
         });
+
+        // Image preview
+        document.getElementById('profile_image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.createElement('img');
+                    preview.src = e.target.result;
+                    preview.style.width = '100px';
+                    preview.style.height = '100px';
+                    preview.style.borderRadius = '50%';
+                    preview.style.marginTop = '10px';
+                    const existingPreview = document.getElementById('image-preview');
+                    if (existingPreview) existingPreview.remove();
+                    preview.id = 'image-preview';
+                    e.target.parentNode.appendChild(preview);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     </script>
     <?php if (isset($_SESSION['success_message'])): ?>
-<script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Succès',
-        text: '<?= $_SESSION['success_message'] ?>',
-        confirmButtonColor: '#3085d6'
-    });
-</script>
-<?php unset($_SESSION['success_message']); endif; ?>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Succès',
+            text: '<?= $_SESSION['success_message'] ?>',
+            confirmButtonColor: '#3085d6'
+        });
+    </script>
+    <?php unset($_SESSION['success_message']); endif; ?>
 
-<?php if (isset($_SESSION['error_message'])): ?>
-<script>
-    Swal.fire({
-        icon: 'error',
-        title: 'Erreur',
-        text: '<?= $_SESSION['error_message'] ?>',
-        confirmButtonColor: '#d33'
-    });
-</script>
-<?php unset($_SESSION['error_message']); endif; ?>
-
-
+    <?php if (isset($_SESSION['error_message'])): ?>
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: '<?= $_SESSION['error_message'] ?>',
+            confirmButtonColor: '#d33'
+        });
+    </script>
+    <?php unset($_SESSION['error_message']); endif; ?>
 </body>
 </html>
