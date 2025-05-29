@@ -492,6 +492,10 @@ if(isset($_GET['enAttente'])) {
             }).then((result) => {
                 if (result.isConfirmed) {
                     form.submit(); // Soumettre le formulaire si confirmé
+                    // Reload the page after a short delay to allow the form to process
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500); // 500ms delay to ensure the form submission is processed
                 }
             });
         }

@@ -564,6 +564,10 @@ document.querySelectorAll('.btn-validate').forEach(button => {
                 form.innerHTML = `<input type="hidden" name="valider" value="${id}">`;
                 document.body.appendChild(form);
                 form.submit();
+                // Reload the page after a short delay to allow the form to process
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500); // 500ms delay to ensure the form submission is processed
             }
         });
     });
@@ -586,6 +590,10 @@ document.querySelectorAll('.btn-reject').forEach(button => {
                 form.innerHTML = `<input type="hidden" name="rejeter" value="${id}">`;
                 document.body.appendChild(form);
                 form.submit();
+               // Reload the page after a short delay to allow the form to process
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500); // 500ms delay to ensure the form submission is processed 
             }
         });
     });
