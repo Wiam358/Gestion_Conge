@@ -13,7 +13,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;
+    height: 2000px;
     width: 250px;
     background-color: white;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);

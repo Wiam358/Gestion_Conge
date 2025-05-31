@@ -208,7 +208,7 @@ if (isset($_POST['update_password'])) {
     document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
             title: 'Erreur',
-            text: 'Code de vérification incorrect. Veuillez recommencer le processus.',
+            text: 'Les mot de passes ne sont pas identiques. Veuillez recommencer le processus.',
             icon: 'error',
             confirmButtonColor: '#3CB371'
         }).then(() => {

@@ -307,7 +307,7 @@ h3 {
                         <tr>
                             <td><?= $donnee['ID'] ?></td>
                             <td>
-                                <strong><?= htmlspecialchars($donnee['nom']) ?> <?= htmlspecialchars($donnee['prenom']) ?></strong>
+                                <strong><?= strtoupper(htmlspecialchars($donnee['nom'])) ?> <?= htmlspecialchars($donnee['prenom']) ?></strong>
                                 <div class="small text-muted"><?= htmlspecialchars($donnee['CIN']) ?></div>
                             </td>
                             <td><?= htmlspecialchars($donnee['service']) ?></td>

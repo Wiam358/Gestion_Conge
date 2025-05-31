@@ -668,12 +668,13 @@ $moisListe = [
     }
     
     function telechargerDecision(idDemande, nomComplet, cin, service, dateDepart, dateRetour, jours) {
+    try {
         const currentDate = new Date().toLocaleDateString('fr-FR', {
             day: '2-digit',
             month: 'long',
             year: 'numeric'
         });
-        const managerName = "<?= strtoupper(htmlspecialchars($_SESSION['nom']) ?? '') ?> <?= htmlspecialchars($_SESSION['prenom'] ?? '') ?>";
+        const managerName = "<?= strtoupper(htmlspecialchars($_SESSION['nom'] ?? 'Responsable RH')) ?> <?= htmlspecialchars($_SESSION['prenom'] ?? '') ?>";
 
         const element = document.createElement('div');
         element.innerHTML = `
@@ -682,62 +683,29 @@ $moisListe = [
             <head>
                 <title>Autorisation de Congé #${idDemande}</title>
                 <style>
-                    @page {
-                        size: A4;
-                        margin: 2cm;
-                    }
                     body {
-                        font-family: 'Arial', sans-serif;
+                        font-family: Arial, sans-serif;
                         line-height: 1.6;
                         color: #333;
-                        padding: 0;
-                        margin: 0;
-                    }
-                    .letterhead {
-                        border-bottom: 2px solid #2E8B57;
-                        padding-bottom: 1rem;
-                        margin-bottom: 2rem;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: flex-end;
-                    }
-                    .logo {
-                        height: 80px;
-                    }
-                    .company-info {
-                        text-align: right;
+                        padding: 20mm;
                     }
                     h1 {
                         color: #2E8B57;
                         text-align: center;
                         margin: 2rem 0;
-                        font-size: 1.8rem;
+                    }
+                    .letterhead {
+                        border-bottom: 2px solid #2E8B57;
+                        padding-bottom: 1rem;
+                        margin-bottom: 2rem;
+                    }
+                    .company-info {
+                        text-align: right;
                     }
                     .document-info {
                         display: flex;
                         justify-content: space-between;
                         margin-bottom: 2rem;
-                    }
-                    .content {
-                        margin: 2rem 0;
-                    }
-                    .signature-block {
-                        margin-top: 4rem;
-                        display: flex;
-                        justify-content: space-between;
-                    }
-                    .signature-line {
-                        width: 300px;
-                        border-top: 1px solid #333;
-                        margin-top: 3rem;
-                        text-align: center;
-                        padding-top: 0.5rem;
-                    }
-                    .footer {
-                        margin-top: 3rem;
-                        font-size: 0.8rem;
-                        color: #666;
-                        text-align: center;
                     }
                     .request-details {
                         width: 100%;
@@ -749,16 +717,22 @@ $moisListe = [
                         padding: 12px;
                         text-align: left;
                     }
-                    .request-details th {
-                        background-color: #f5f5f5;
+                    .signature-block {
+                        margin-top: 4rem;
+                        display: flex;
+                        justify-content: space-between;
                     }
-                    .stamp {
-                        position: absolute;
-                        right: 50px;
-                        opacity: 0.2;
-                        font-size: 5rem;
-                        color: #2E8B57;
-                        transform: rotate(-15deg);
+                    .signature-line {
+                        width: 300px;
+                        border-top: 1px solid #333;
+                        margin-top: 3rem;
+                        text-align: center;
+                    }
+                    .footer {
+                        margin-top: 3rem;
+                        font-size: 0.8rem;
+                        color: #666;
+                        text-align: center;
                     }
                 </style>
             </head>
@@ -766,7 +740,7 @@ $moisListe = [
                 <div class="letterhead">
                     <div>
                         <h2 style="margin: 0;">${nomComplet}</h2>
-                    <p style="margin: 0;">Demande de congé #${idDemande}</p>
+                        <p style="margin: 0;">Demande de congé #${idDemande}</p>
                     </div>
                     <div class="company-info">
                         <p style="margin: 0;">Chambre de commerce</p>
@@ -788,9 +762,7 @@ $moisListe = [
 
                 <div class="content">
                     <p>Je soussigné, <strong>${managerName}</strong>, en ma qualité de Responsable des Ressources Humaines,</p>
-                    
                     <p>autorise par la présente <strong>${nomComplet}</strong> (Matricule: ${cin}) à prendre un congé selon les modalités suivantes :</p>
-                    
                     <table class="request-details">
                         <tr>
                             <th width="30%">Période de congé</th>
@@ -801,27 +773,18 @@ $moisListe = [
                             <td>${service}</td>
                         </tr>
                     </table>
-                    
                     <p>Cette autorisation est valable sous réserve des dispositions du règlement intérieur et de la convention collective applicable.</p>
                 </div>
 
                 <div class="signature-block">
                     <div>
                         <p>Fait à <strong>Casablanca</strong>, le ${currentDate}</p>
-                        <div class="signature-line">
-                            Signature
-                        </div>
+                        <div class="signature-line">Signature</div>
                     </div>
                     <div>
                         <p>Pour accord,</p>
-                        <div class="signature-line">
-                            Signature du responsable
-                        </div>
+                        <div class="signature-line">Signature du responsable</div>
                     </div>
-                </div>
-
-                <div class="stamp">
-                    CCISCS
                 </div>
 
                 <div class="footer">
@@ -836,12 +799,19 @@ $moisListe = [
             margin: 0,
             filename: `Decision_Conge_${idDemande}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
+            html2canvas: { scale: 1, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().from(element).set(options).save();
+        html2pdf().from(element).set(options).save().catch(err => {
+            console.error('Erreur lors de la génération du PDF:', err);
+            alert('Une erreur est survenue lors de la génération du PDF. Veuillez vérifier la console pour plus de détails.');
+        });
+    } catch (error) {
+        console.error('Erreur dans telechargerDecision:', error);
+        alert('Une erreur inattendue est survenue. Veuillez vérifier la console pour plus de détails.');
     }
+}
     
     function imprimerToutesDecisions() {
         const printWindow = window.open('', '_blank');
