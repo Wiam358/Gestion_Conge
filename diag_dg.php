@@ -181,12 +181,11 @@ $congesGantt = $reqGantt->fetchAll();
         display: none !important;
     }
 }
-
     </style>
 </head>
 <body>
     <div class="container py-4">
-        
+                <h2 class="mb-4 fw-bold" style="color:seagreen;"><i class="bi bi-grid-fill"></i> Statistiques des congés</h2>
         <!-- Première ligne : Graphiques -->
         <div class="row mb-4">
             <div class="col-md-6">

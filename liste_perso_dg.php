@@ -165,7 +165,7 @@ if(isset($_POST['grades']) && $_POST['grades'] != "false") {
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="header-title mb-0">
                     <i class="bi bi-people-fill header-icon"></i>
-                    MEMBRE D'ORGANISME | CCISCS
+                    MEMBRES D'ORGANISME | CCISCS
                 </h2>
                 <div>
                     <span class="badge bg-secondary">

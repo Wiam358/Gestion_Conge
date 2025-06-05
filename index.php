@@ -106,6 +106,7 @@ if (isset($_SESSION['cin'])) {
 <html>
 <head>
     <title> Mon Profil | <?= $_SESSION['nom'] ?> <?= $_SESSION['prenom'] ?></title>
+    <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="photos/cciscs.png" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">

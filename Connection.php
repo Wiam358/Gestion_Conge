@@ -268,81 +268,21 @@ if (isset($_POST['pass']) && isset($_POST['login'])) {
         $resultat = $req->fetch();
         
         if (!$resultat) {
-            echo '<!DOCTYPE html>
-            <html>
-            <head>
-                <link rel="icon" type="image/png" href="photos/cciscs.png" />
-                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                <style>
-                    :root {
-                        --seagreen-dark: #2E8B57;
-                        --seagreen-primary: #3CB371;
-                        --seagreen-light: #8FBC8F;
-                        --seagreen-lighter: #98FB98;
-                        --seagreen-bg: #F0FFF0;
-                    }
-                    .swal2-popup {
-                        background: var(--seagreen-bg) !important;
-                        border: 2px solid var(--seagreen-light) !important;
-                        border-radius: 15px !important;
-                    }
-                    .swal2-title {
-                        color: var(--seagreen-dark) !important;
-                        font-weight: 600 !important;
-                    }
-                    .swal2-content {
-                        color: #333 !important;
-                    }
-                    .swal2-confirm {
-                        background-color: var(--seagreen-primary) !important;
-                        border: none !important;
-                        box-shadow: none !important;
-                        transition: all 0.3s ease !important;
-                    }
-                    .swal2-confirm:hover {
-                        background-color: var(--seagreen-dark) !important;
-                        transform: translateY(-2px) !important;
-                        box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3) !important;
-                    }
-                    .swal2-backdrop-show {
-                        background: rgba(143, 188, 143, 0.5) !important;
-                    }
-                    .swal2-icon.swal2-error {
-                        color: var(--seagreen-dark) !important;
-                        border-color: var(--seagreen-dark) !important;
-                    }
-                    .swal2-icon.swal2-error [class^="swal2-x-mark-line"] {
-                        background-color: var(--seagreen-dark) !important;
-                    }
-                </style>
-            </head>
-            <body>
-                <script>
-                    Swal.fire({
-                        title: "Échec de connexion",
-                        text: "Le Nom d\'utilisateur ou le mot de passe est incorrect",
-                        icon: "error",
-                        confirmButtonText: "Réessayer",
-                        confirmButtonColor: "#3CB371",
-                        background: "#F0FFF0",
-                        backdrop: 
-                            `rgba(143, 188, 143, 0.4)
-                            url(\"cadenas.png\")
-                            center left
-                            no-repeat`
-                        ,
-                        customClass: {
-                            container: "swal2-seagreen-theme"
-                        }
-                    }).then((result) => {
+            echo '<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            title: "Échec de connexion",
+            text: "Le Nom d\'utilisateur ou le mot de passe est incorrect",
+            icon: "error",
+            confirmButtonText: "Réessayer",
+        }).then((result) => {
                         if (result.isConfirmed) {
                             window.location.href = "Connection.php";
                         }
                     });
-                </script>
-            </body>
-            </html>';
-            exit();
+    });
+</script>';
+            
         } else {
             $_SESSION['cin'] = $resultat['cin'];
             $_SESSION['login'] = $_POST['login'];
@@ -373,23 +313,118 @@ if (isset($_POST['pass']) && isset($_POST['login'])) {
             --seagreen-lighter: #98FB98;
             --seagreen-bg: #F0FFF0;
         }
-        body {
-            background-color: var(--seagreen-bg);
-            font-family: sans-serif;
-            margin: 0;
-            padding: 0;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(143, 188, 143, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(143, 188, 143, 0.1) 0%, transparent 20%);
+        
+        /* Nouveau style pour la vidéo d'arrière-plan */
+        /* Modifiez ces classes dans votre style existant */
+
+.video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    object-fit: cover;
+    opacity: 0.7; /* Augmenté de 0.3 à 0.7 */
+    /* filter: grayscale(30%); Option: garder un léger filtre pour le style */
+    mix-blend-mode: multiply;
+    background-color: rgba(0, 0, 0, 0.3); /* Couleur de fonçage */
+}
+
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: rgba(115, 118, 115, 0.7); /* Fond plus transparent */
+}
+
+/* Pour améliorer la lisibilité du contenu */
+.login-container, 
+.welcome-content {
+    background-color: rgba(255, 255, 255, 0.85); /* Fond plus opaque */
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3); /* Ombre plus prononcée */
+}
+         /* Conteneur principal flex */
+        .main-container {
+            display: flex;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
         }
-        .container {
-            max-width: 800px;
-            width: 90%;
-            margin: 2rem auto;
+        
+        /* Container du formulaire à gauche */
+        .login-container {
+            width: 45%;
+            max-width: 500px;
+            margin-left: 5%;
             animation: fadeIn 0.8s ease-out;
+            background-color: rgba(99, 91, 91, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        /* Container du texte à droite */
+        .welcome-container {
+            width: 45%;
+            max-width: 600px;
+            margin-left: 5%;
+            padding: 40px;
+            color: white;
+            position: relative;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .welcome-content {
+            background-color: rgba(46, 139, 87, 0.85);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .welcome-title {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .welcome-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        .features-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .features-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            font-size: 1rem;
+        }
+        
+        .features-list li:before {
+            content: "✓";
+            color: #98FB98;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
         }
         .header {
             margin-bottom: 1rem;
+        }
+        .login-container {
+            width: 45%;
+            max-width: 500px;
+            margin-left: 5%;
+            animation: fadeIn 0.8s ease-out;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
         fieldset {
             border: 2px solid var(--seagreen-light);
@@ -470,7 +505,15 @@ if (isset($_POST['pass']) && isset($_POST['login'])) {
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Ajoutez cette vidéo en arrière-plan -->
+    <video autoplay muted loop id="bg-video" class="video-background">
+        <source src="photos/ccics.mp4" type="video/mp4">
+        <!-- Vous pouvez ajouter d'autres formats pour la compatibilité -->
+        <!-- <source src="videos/background.webm" type="video/webm"> -->
+        Votre navigateur ne supporte pas les vidéos HTML5.
+    </video>
+    <div class="main-container">
+    <div class="login-container">
         <div class="header">
             <img src="photos/titre.png" style="width:100%;">
         </div>
@@ -487,9 +530,38 @@ if (isset($_POST['pass']) && isset($_POST['login'])) {
                 <a href="#" id="forgot-password-link" style="color: #2E8B57; text-decoration: none;">Mot de passe oublié ?</a>
             </div>
         </fieldset>
-        <br>
+        
         <?php include_once("footer.html"); ?>
         <br>
+    </div>
+    <!-- Nouveau container pour le texte (à droite) -->
+        <div class="welcome-container">
+    <div class="welcome-content">
+        <h2 class="welcome-title">Bienvenue sur la Plateforme de Gestion des Congés</h2>
+        <p class="welcome-text">
+            Accédez à votre espace personnel pour gérer vos demandes de congés en toute simplicité. 
+            Notre système sécurisé vous permet de :
+        </p>
+        
+        <ul class="features-list">
+            <li>Soumettre et suivre vos demandes de congé en temps réel</li>
+            <li>Consulter votre solde de jours disponibles</li>
+            <li>Visualiser l'historique complet de vos absences</li>
+            <li>Recevoir des notifications sur l'état de vos demandes</li>
+            <li>Accéder à vos documents administratifs</li>
+        </ul>
+
+        
+        
+        <div class="contact-info">
+            <h3 class="contact-title">Support Technique:</h3>
+            <p>
+                <strong>Email :</strong> support.drh@cciscs.com
+                <strong>Téléphone :</strong> +212 5 23 45 67 89<br>
+            </p>
+        </div>
+    </div>
+</div>
     </div>
     
     <!-- Modal de réinitialisation -->
@@ -579,6 +651,20 @@ if (isset($_POST['pass']) && isset($_POST['login'])) {
             openResetModal();
         });
         <?php endif; ?>
+        // Script pour gérer la lecture de la vidéo
+        document.addEventListener('DOMContentLoaded', function() {
+            var video = document.getElementById('bg-video');
+            try {
+                video.play().catch(e => {
+                    console.log("La lecture automatique a été bloquée:", e);
+                    // Solution de repli si la lecture automatique est bloquée
+                    video.muted = true;
+                    video.play();
+                });
+            } catch (e) {
+                console.log("Erreur de lecture vidéo:", e);
+            }
+        });
     </script>
 </body>
 </html>
