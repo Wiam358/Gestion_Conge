@@ -28,7 +28,7 @@ try {
 
     // Définition des couleurs (devrait être dans config.php pour réutilisation)
     $colors = [
-        'congé' => ['#3cb371', '#ffffff'],
+        'Conférence' => ['#3cb371', '#ffffff'],
         'formation' => ['#ffa500', '#000000'],
         'réunion' => ['#9370db', '#ffffff'],
         'autre' => ['#3788d8', '#ffffff']

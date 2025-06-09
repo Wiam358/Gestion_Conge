@@ -38,7 +38,7 @@ try {
 
     // Mettre à jour les couleurs en fonction du type d'événement
     $colors = [
-        'congé' => ['#3cb371', '#ffffff'],
+        'Conférence' => ['#3cb371', '#ffffff'],
         'formation' => ['#ffa500', '#000000'],
         'réunion' => ['#9370db', '#ffffff'],
         'autre' => ['#3788d8', '#ffffff']

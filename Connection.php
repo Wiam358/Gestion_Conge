@@ -502,12 +502,19 @@ body {
                 padding: 1.5rem;
             }
         }
+        @media (max-width: 992px) {
+            .login-container {
+                height: 550px;
+                width: 550px;
+                margin: 1rem auto;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Ajoutez cette vidéo en arrière-plan -->
     <video autoplay muted loop id="bg-video" class="video-background">
-        <source src="photos/ccics.mp4" type="video/mp4">
+        <source src="photos/ccisc.mp4" type="video/mp4">
         <!-- Vous pouvez ajouter d'autres formats pour la compatibilité -->
         <!-- <source src="videos/background.webm" type="video/webm"> -->
         Votre navigateur ne supporte pas les vidéos HTML5.

@@ -235,7 +235,7 @@
                 <label for="addEventType" class="form-label">Type d'événement</label>
                 <select id="addEventType" class="form-select" required>
                   <option value="" selected disabled>Choisir</option>
-                  <option value="congé">Congé</option>
+                  <option value="Conférence">Conférence</option>
                   <option value="formation">Formation</option>
                   <option value="réunion">Réunion</option>
                   <option value="autre">Autre</option>
@@ -304,7 +304,7 @@
                 <label for="editEventType" class="form-label">Type d'événement</label>
                 <select id="editEventType" class="form-select" required>
                   <option value="" selected disabled>Choisir</option>
-                  <option value="congé">Congé</option>
+                  <option value="Conférence">Congé</option>
                   <option value="formation">Formation</option>
                   <option value="réunion">Réunion</option>
                   <option value="autre">Autre</option>
@@ -604,7 +604,7 @@ document.getElementById('editEventForm').addEventListener('submit', function(e) 
 // Fonction pour obtenir les couleurs en fonction du type d'événement
 function getEventColor(eventType) {
     const colors = {
-        'congé': ['#3cb371', '#ffffff'],
+        'Conférence': ['#3cb371', '#ffffff'],
         'formation': ['#ffa500', '#000000'],
         'réunion': ['#9370db', '#ffffff'],
         'autre': ['#3788d8', '#ffffff']
